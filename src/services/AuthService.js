@@ -1,8 +1,9 @@
 import axios from "axios";
 
+const url = import.meta.env.VITE_BACKEND_URL;
 export const loginWithGoogle = async (code) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/token', {
+      const response = await axios.post(`${url}/api/auth/token`, {
         code: code
       },
       {
@@ -10,7 +11,7 @@ export const loginWithGoogle = async (code) => {
           'Content-Type': 'application/json'
         }
       });
-      const data = response.data;
+      const data = await response.data;
       localStorage.setItem('token', data.token);
     } catch (error) {
       console.error('Error:', error);
@@ -20,12 +21,12 @@ export const loginWithGoogle = async (code) => {
 
   export const isAuthenticated = () => {
     const token = localStorage.getItem('token');
-    return !!token;
+    return token !== null;
   };
 
   export const login = async ({email,password}) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
+      const response = await axios.post(`${url}/api/auth/login`, {
         email: email,
         password: password
       },
@@ -45,7 +46,7 @@ export const loginWithGoogle = async (code) => {
   export const signup = async ({name, email,password}) => {
     console.log(name);
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/register', {
+      const response = await axios.post(`${url}/api/auth/register`, {
         name: name,
         email: email,
         password: password

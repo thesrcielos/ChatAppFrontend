@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { loginWithGoogle, isAuthenticated } from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
+import {connectWebSocket} from "../services/MessageService";
 
 const GoogleCallback = () =>{
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const GoogleCallback = () =>{
             if (code) {
               await loginWithGoogle(code); // Asegúrate de que el token se guarde antes de continuar
               if (isAuthenticated()) {
+                connectWebSocket();
                 navigate("/home");
               }
             }
