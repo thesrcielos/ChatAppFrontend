@@ -1,6 +1,8 @@
 import api from "./Api.js";
 
-BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api";
+
 
 export const acceptContact = async (id) => {
     try {
@@ -76,4 +78,13 @@ export const sendContactRequest = async ({userId, contactId}) => {
       console.error('Error al crear el post:', error);
       return false;
     }
+}
+
+export const getUserIdFromToken = async () => {
+  try {
+      return await api.get(`${BACKEND_URL}/getId`);
+  } catch (error) {
+    console.error('Error al obtener el id:', error);
+    return false;
+  }
 }

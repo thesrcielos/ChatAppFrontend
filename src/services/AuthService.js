@@ -21,7 +21,7 @@ export const loginWithGoogle = async (code) => {
 
   export const isAuthenticated = () => {
     const token = localStorage.getItem('token');
-    return token !== null;
+    return !!token;
   };
 
   export const login = async ({email,password}) => {

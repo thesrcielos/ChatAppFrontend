@@ -1,27 +1,32 @@
 import { Client } from "@stomp/stompjs";
 
-const token = localStorage.getItem("token");
+let token;
 const ws_uri = import.meta.env.VITE_WEBSOCKET_URI;
+let stompClient;
 
-let stompClient = new Client({
-    brokerURL: ws_uri, // WebSocket directo
-    reconnectDelay: 5000,
-    connectHeaders: {
-      'Authorization': `Bearer ${token}`, // Se envía el token en la conexión
-    },
-    debug: (msg) => console.log("[WebSocket]", msg),
-    onConnect: () => {
-      console.log("Conectado al WebSocket");
-  
-      stompClient.subscribe("/topic/conversation", (message) => {
-        console.log("Mensaje recibido:", JSON.parse(message.body));
-      });
-    },
-    onStompError: (frame) => {
-      console.error("Error en STOMP:", frame.headers["message"]);
-    },
-  });
+const createWS = () => {
+  token = localStorage.getItem("token");
+  stompClient = new Client({
+      brokerURL: ws_uri, // WebSocket directo
+      reconnectDelay: 5000,
+      connectHeaders: {
+        'Authorization': `Bearer ${token}`, // Se envía el token en la conexión
+      },
+      debug: (msg) => console.log("[WebSocket]", msg),
+      onConnect: () => {
+        console.log("Conectado al WebSocket");
+    
+        stompClient.subscribe("/topic/conversation", (message) => {
+          console.log("Mensaje recibido:", JSON.parse(message.body));
+        });
+      },
+      onStompError: (frame) => {
+        console.error("Error en STOMP:", frame.headers["message"]);
+      },
+    });
+}
 export const connectWebSocket = () => {
+  createWS();
   stompClient.activate();
 };
 

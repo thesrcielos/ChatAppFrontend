@@ -5,10 +5,11 @@ import {isAuthenticated, login} from "../services/AuthService";
 import { Input, Button, Card, Form } from "@heroui/react";
 import {connectWebSocket} from "../services/MessageService";
 
+
 export const Login = () => {
     const userEmail = useRef(null);
     const userPassword = useRef(null);
-  
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       const email = userEmail.current.value;
@@ -28,7 +29,7 @@ export const Login = () => {
       }
     }, [navigate]);
   
-    const handleAuthentication = () => {
+    const handleAuthentication = async () => {
       connectWebSocket();
       navigate('/home');
     }

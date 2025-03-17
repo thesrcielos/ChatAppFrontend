@@ -1,9 +1,11 @@
 import "./Chat.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, Menu } from "lucide-react";
 import { Button, Card, Input } from "@heroui/react";
 import { sendMessageWS } from "../services/MessageService";
 import { getUserContacts } from "../api/UserApi";
+import { useUser } from "../services/UserContext.jsx";
+import {jwtDecode} from "jwt-decode";
 
 export default function ChatApp() {
   const [messages, setMessages] = useState([
@@ -11,7 +13,15 @@ export default function ChatApp() {
     { text: "¡Hola! Todo bien, ¿y tú?", sender: "me" },
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const{userId, setUserId} = useUser();
 
+  useEffect(()=>{
+    const token = localStorage.getItem("token");
+    if (!!token) {
+      let payload = jwtDecode(token);
+      setUserId(payload.id);
+    }
+  });
   const sendMessage = () => {
     if (newMessage.trim() === "") return;
     sendMessageWS({content: newMessage,
