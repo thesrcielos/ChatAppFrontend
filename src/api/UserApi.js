@@ -65,9 +65,18 @@ export const getUserContacts = async (id, page, size) => {
     }
 }
 
+export const rejectContactRequest = async (id) => {
+  try {
+    await api.delete(`${BACKEND_URL}/users/contacts/request/${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error al crear el post:', error);
+    return false;
+  }
+}
 export const sendContactRequest = async ({userId, contactId}) => {
   try {
-      await api.post(`${BACKEND_URL}/users/{id}/contacts?page=${page}&size=${size}` ,
+      await api.post(`${BACKEND_URL}/users/contacts/request` ,
         {
           userId: userId,
           contactId: contactId
@@ -80,9 +89,10 @@ export const sendContactRequest = async ({userId, contactId}) => {
     }
 }
 
-export const getUserIdFromToken = async () => {
+export const getUsersByPatterns = async (pattern, page, size) => {
   try {
-      return await api.get(`${BACKEND_URL}/getId`);
+      const data = await api.get(`${BACKEND_URL}/users/coincidences?pattern=${pattern}&page=${page}&size=${size}`);
+      return await data.data;
   } catch (error) {
     console.error('Error al obtener el id:', error);
     return false;

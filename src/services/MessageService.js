@@ -16,7 +16,7 @@ const createWS = () => {
       onConnect: () => {
         console.log("Conectado al WebSocket");
     
-        stompClient.subscribe("/topic/conversation", (message) => {
+        stompClient.subscribe("/user/topic/conversation", (message) => {
           console.log("Mensaje recibido:", JSON.parse(message.body));
         });
       },

@@ -1,6 +1,6 @@
 import api from "./Api.js";
 
-BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api/chat";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api/chats";
 
 export const deleteMessage = async (id) => {
     try {
@@ -27,11 +27,11 @@ export const editMessage = async ({id, message}) => {
 
 export const getChatMessages = async (id, page, size) => {
     try {
-        await api.get(`${BACKEND_URL}/conversation/${id}/messages?page=${page}&size=${size}`);
-        return true;
+        const data = await api.get(`${BACKEND_URL}/conversation/${id}/messages?page=${page}&size=${size}`);
+        return await data.data;
       } catch (error) {
         console.error('Error al crear el post:', error);
-        return false;
+        return null;
       }
 }
 
@@ -45,6 +45,25 @@ export const getGroupChatMessages = async (id, page, size) => {
       }
 }
 
+export const getUserChats = async (id, page, size) => {
+  try {
+    const data = await api.get(`${BACKEND_URL}/users/${id}?page=${page}&size=${size}`);
+    return await data.data;
+  } catch (error) {
+    console.error('Error al crear el post:', error);
+    return null;
+  }
+}
+
+export const getUserChatsByPatterns = async (id, pattern, page, size) => {
+  try {
+    const data = await api.get(`${BACKEND_URL}/users/${id}/contacts?pattern=${pattern}&page=${page}&size=${size}`);
+    return await data.data;
+  } catch (error) {
+    console.error('Error al crear el post:', error);
+    return null;
+  }
+}
 export const sendMessage = async () => {
     
 }
