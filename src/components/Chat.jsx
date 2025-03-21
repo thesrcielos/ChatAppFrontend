@@ -2,7 +2,7 @@ import "./Chat.css";
 import { useEffect, useState } from "react";
 import { Send, Menu, Search } from "lucide-react";
 import { Button, Card, CardBody, Input } from "@heroui/react";
-import { sendMessageWS } from "../services/MessageService";
+import { sendMessageWS, subscribe } from "../services/MessageService";
 import {getChatMessages,  getUserChats, getUserChatsByPatterns} from "../api/ChatApi.js";
 import { useUser } from "../services/UserContext.jsx";
 import {jwtDecode} from "jwt-decode";
@@ -19,6 +19,7 @@ export default function ChatApp() {
   const {userId, setUserId} = useUser();
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
   const [contact, setContact] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const filteredContacts = () => {/* contacts.filter((contact) =>
     contact.toLowerCase().includes(searchTerm.toLowerCase())*/
@@ -32,10 +33,19 @@ export default function ChatApp() {
         setUserId(payload.id);
         console.log(payload.id);
         await getChats(payload.id);
+        subscribe(handleMessages);
       }
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (message === null) {
+      return;
+    }
+    setMessages([...messages, message])
+  }, [message])
+
   const sendMessage = () => {
     if (newMessage.trim() === "") return;
     sendMessageWS({content: newMessage,
@@ -53,6 +63,9 @@ export default function ChatApp() {
     setContacts(data.values);
   }
 
+  const handleMessages = (message) => {
+    setMessage(message)
+  }
   const openChat = async (contact) => {
     setContact(contact);
     if(contact.id === null) {
@@ -72,7 +85,7 @@ export default function ChatApp() {
   }
 
   return (
-    <div className="flex w-screen justify-left items-left h-screen">
+    <div className="container-chat flex justify-left items-left h-screen">
     {/* Lista de contactos con barra de búsqueda */}
     <div className="w-2/5 pl-2 bg-gray shadow-lg">
       <div className="flex justify-between items-center p-2">
@@ -104,30 +117,30 @@ export default function ChatApp() {
       </Card>
 
        <Card className="w-full max-w-md shadow-lg">
-      <CardBody className="p-4 max-h-80 overflow-y-auto">
-        {contacts?.length > 0 ? (
-          contacts.map((contact, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Button onPress={()=>openChat(contact)} className="w-full py-3 text-left mb-2 rounded-lg border border-gray-300 hover:bg-gray-100">
-                {contact.contact.name}
-              </Button>
-            </motion.div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center">No hay chats disponibles</p>
-        )}
+        <CardBody className="p-4 w-full max-h-80 overflow-y-auto">
+          {contacts?.length > 0 ? (
+            contacts.map((contact, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Button onPress={()=>openChat(contact)} className="w-full py-3 text-left mb-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+                  {contact.contact.name}
+                </Button>
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center">No hay chats disponibles</p>
+          )}
       </CardBody>
     </Card>
     </div>
 
     {/* Área de chat */}
     { !!contact ? (
-    <main className="flex-1 flex flex-col">
+    <main className="flex-1 flex flex-col w-3/5">
       <header className="p-4 bg-blue-500 text-white font-bold text-lg">
         {contact.contact.name}
       </header>
@@ -137,13 +150,10 @@ export default function ChatApp() {
           <div
             key={index}
             className={`p-3 text-left rounded-lg max-w-xs ${
-              msg.userId === Number(userId) ? "ml-auto bg-blue-500 text-white" : "bg-gray-200 text-black"
+              Number(msg.userId) === Number(userId) ? "ml-auto bg-blue-500 text-white" : "bg-gray-200 text-black"
             }`}
           >
             {msg.message}
-            {console.log(msg.userId == userId)}
-            {console.log(typeof userId)}
-            {console.log(typeof msg.userId)}
           </div>
         ))}
       </div>
@@ -160,7 +170,7 @@ export default function ChatApp() {
           <Send className="w-5 h-5" />
         </Button>
       </footer>
-    </main>):null }
+    </main>):<div className="w-3/5"></div> }
     <AddContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     <RequestsModal isOpen={isRequestsModalOpen} onClose={() => setIsRequestsModalOpen(false)} />
   </div>

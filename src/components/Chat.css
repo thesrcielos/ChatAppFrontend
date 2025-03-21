@@ -1,8 +1,13 @@
-#root{
+#root, body{
     margin: 0;
     padding: 0;
+    width: 100vw;
 }
 
 .s-contacts input{
     padding-bottom: 3px;
+}
+
+.container-chat{
+    width: 100%;
 }

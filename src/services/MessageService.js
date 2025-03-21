@@ -3,6 +3,7 @@ import { Client } from "@stomp/stompjs";
 let token;
 const ws_uri = import.meta.env.VITE_WEBSOCKET_URI;
 let stompClient;
+const subscribers = []
 
 const createWS = () => {
   token = localStorage.getItem("token");
@@ -17,7 +18,11 @@ const createWS = () => {
         console.log("Conectado al WebSocket");
     
         stompClient.subscribe("/user/topic/conversation", (message) => {
-          console.log("Mensaje recibido:", JSON.parse(message.body));
+          const data = JSON.parse(message.body)
+          subscribers.forEach(
+            (callback) => callback(data)
+          );
+          console.log("Mensaje recibido:", data);
         });
       },
       onStompError: (frame) => {
@@ -25,6 +30,7 @@ const createWS = () => {
       },
     });
 }
+
 export const connectWebSocket = () => {
   createWS();
   stompClient.activate();
@@ -69,3 +75,9 @@ export const disconnectWebSocket = () => {
   }
   
 };
+
+export const subscribe = (callback) => {
+  if (!subscribers.includes(callback)) {
+    subscribers.push(callback);
+  }
+}
