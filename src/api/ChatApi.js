@@ -1,5 +1,5 @@
 import api from "./Api.js";
-
+import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api/chats";
 
 export const deleteMessage = async (id) => {
@@ -64,6 +64,26 @@ export const getUserChatsByPatterns = async (id, pattern, page, size) => {
     return null;
   }
 }
-export const sendMessage = async () => {
-    
+export const sendAudioMessage = async (file, message) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("data", new Blob([JSON.stringify(message)], { type: "application/json" })); 
+    const response = await api.post(`${import.meta.env.VITE_BACKEND_URL}/api/files/upload`,formData, {
+      headers: { "Content-Type": "multipart/form-data" }});
+    return await response.data;
+  } catch (error) {
+    console.error('Error al crear el post:', error);
+    return null;
+  }
+}
+
+export const getFileData = async (url) => {
+  try {
+    const data = await axios.get(url,{ headers : {"Content-Type": "application/json"}});
+    return await data.data;
+  } catch (error) {
+    console.error('Error al crear el post:', error);
+    return null;
+  }
 }

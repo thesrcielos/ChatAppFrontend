@@ -55,6 +55,7 @@ export const Login = () => {
               label="Email"
               ref={userEmail}
               required
+              className="flex justify-start items-start"
             />
             <Input
               type="password"

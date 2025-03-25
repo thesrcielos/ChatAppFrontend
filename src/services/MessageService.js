@@ -65,6 +65,35 @@ export const sendMessageWS = (message, additionalHeaders = {Authorization: `Bear
   }
 };
 
+
+export const sendAudioWS = async (file, message, additionalHeaders = 
+  {Authorization: `Bearer ${token}`}) => {
+  if (stompClient && stompClient.connected) {
+    message["content"] = await fileToBase64(file);
+    // No añadimos el token de autorización aquí para evitar duplicados
+    console.log(message.content);
+    stompClient.publish({
+      destination: "/app/audio/upload",
+      body: JSON.stringify(message),
+      headers: additionalHeaders
+    });
+  } else {
+    console.error("No se pudo enviar el mensaje, WebSocket no conectado");
+  }
+};
+
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = reader.result.split(',')[1];
+      resolve(base64String);
+    }
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 export const disconnectWebSocket = () => {
   if (stompClient) {
     if (stompClient.connected) {
