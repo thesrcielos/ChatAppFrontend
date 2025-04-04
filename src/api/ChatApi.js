@@ -35,16 +35,6 @@ export const getChatMessages = async (id, page, size) => {
       }
 }
 
-export const getGroupChatMessages = async (id, page, size) => {
-    try {
-        await api.get(`${BACKEND_URL}/group/conversation/${id}/messages?page=${page}&size=${size}`);
-        return true;
-      } catch (error) {
-        console.error('Error al crear el post:', error);
-        return false;
-      }
-}
-
 export const getUserChats = async (id, page, size) => {
   try {
     const data = await api.get(`${BACKEND_URL}/users/${id}?page=${page}&size=${size}`);

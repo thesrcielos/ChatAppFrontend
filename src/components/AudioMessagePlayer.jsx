@@ -19,8 +19,7 @@ const AudioMessagePlayer = ({ audioSrc }) => {
   };
 
   const handleLoadedMetadata = () => {
-    console.log(audioRef.current.duration);
-    setDuration(audioRef.current.duration);
+    setDuration(parseInt(audioRef.current.duration));
   };
 
   const handleTimeUpdate = () => {

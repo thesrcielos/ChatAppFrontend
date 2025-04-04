@@ -196,7 +196,6 @@ const AudioRecorder = ({ contact, onOpen, setMessage, className = '', style = {}
             <div className="botones-grabacion">
               <button onClick={iniciarGrabacion} className="boton-reanudar" title="Reanudar grabación">
                 <Mic/>
-                {console.log(estado)}
               </button>
               <button onClick={enviarAudio} className="boton-reanudar" title="Reanudar grabación">
                 <Send/>

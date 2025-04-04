@@ -14,6 +14,7 @@ import EmojiPicker from "emoji-picker-react";
 import AudioRecorder from "./AudioRecorder.jsx";
 import ReactAudioPlayer from 'react-audio-player';
 import AudioMessagePlayer from "./AudioMessagePlayer.jsx";
+import CreateGroupModal from "./CreateGroupModal.jsx";
 
 export default function ChatApp() {
   const [messages, setMessages] = useState([]);
@@ -34,7 +35,6 @@ export default function ChatApp() {
       if (!!token) {
         let payload = jwtDecode(token);
         setUserId(payload.id);
-        console.log(payload.id);
         await getChats(payload.id);
         subscribe(handleMessages);
       }
@@ -74,7 +74,6 @@ export default function ChatApp() {
 
   const getChats = async (id) => {
     const data = await getUserChats(id, 0, 10);
-    console.log(data);
     setContacts(data.values);
   }
 
@@ -89,7 +88,6 @@ export default function ChatApp() {
     }
     const data = await getChatMessages(contact.id, 0, 10);
     setMessages(data.values);
-    console.log(messages);
   }
   
   const handleSearchTerm = async (searchTerm) => {
@@ -99,7 +97,6 @@ export default function ChatApp() {
   }
 
   const convertMessage = (message) => {
-    console.log(message);
     if(!!message.fileType) {
       return <AudioMessagePlayer audioSrc={message.fileUrl}/>
     }
@@ -128,6 +125,7 @@ export default function ChatApp() {
           >
             +
           </Button>
+          <CreateGroupModal></CreateGroupModal>
         </div>
 
         {/* Barra de búsqueda */}
