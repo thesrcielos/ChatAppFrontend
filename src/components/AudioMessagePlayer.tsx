@@ -2,37 +2,49 @@ import "./AudioMessagePlayer.css";
 import React, { useRef, useState } from 'react';
 import { Mic, Play, Pause } from 'lucide-react';
 
-const AudioMessagePlayer = ({ audioSrc }) => {
-  const audioRef = useRef(null);
+interface AudioMessagePlayerProps {
+  audioSrc: string;
+}
+
+const AudioMessagePlayer = ({ audioSrc }: AudioMessagePlayerProps) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
   const handlePlayPause = () => {
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    if (audioRef.current) {
+      if (audioRef.current.paused) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
     }
   };
 
   const handleLoadedMetadata = () => {
-    setDuration(parseInt(audioRef.current.duration));
+    if (audioRef.current) {
+      setDuration(Math.floor(audioRef.current.duration));
+    }
   };
 
   const handleTimeUpdate = () => {
-    setCurrentTime(audioRef.current.currentTime);
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
   };
 
-  const handleSeek = (e) => {
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekTime = parseFloat(e.target.value);
-    audioRef.current.currentTime = seekTime;
-    setCurrentTime(seekTime);
+    if (audioRef.current) {
+      audioRef.current.currentTime = seekTime;
+      setCurrentTime(seekTime);
+    }
   };
 
-  const formatTime = (time) => {
+  const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
@@ -53,12 +65,12 @@ const AudioMessagePlayer = ({ audioSrc }) => {
       </div>
       <div className="flex flex-col h-full justify-end justify-between items-start">  
         <input 
-            type="range"
-            min="0"
-            max={duration}
-            value={currentTime}
-            onChange={handleSeek} 
-            className="audio-control w-full h-[10px] bg-gray-200 rounded-lg cursor-pointer 
+          type="range"
+          min="0"
+          max={duration}
+          value={currentTime}
+          onChange={handleSeek} 
+          className="audio-control w-full h-[10px] bg-gray-200 rounded-lg cursor-pointer 
             [&::-webkit-slider-thumb]:appearance-none 
             [&::-webkit-slider-thumb]:w-[3px]
             [&::-webkit-slider-thumb]:h-[3px]

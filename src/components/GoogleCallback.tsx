@@ -1,9 +1,11 @@
 import { useEffect } from "react"
-import { loginWithGoogle, isAuthenticated } from "../services/AuthService";
+import { useUser, setToken } from "../services/UserContext";
+import { loginWithGoogle} from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
 import {connectWebSocket} from "../services/MessageService";
 
 const GoogleCallback = () =>{
+    const {checkAuth, login} = useUser();
     const navigate = useNavigate();
     useEffect( () => {
         const authenticate = async () => {
@@ -11,8 +13,10 @@ const GoogleCallback = () =>{
             const code = params.get('code');
             
             if (code) {
-              await loginWithGoogle(code); // Asegúrate de que el token se guarde antes de continuar
-              if (isAuthenticated()) {
+              const data = await loginWithGoogle(code); // Asegúrate de que el token se guarde antes de continuar
+              const token =  data.token;
+              setToken(token);
+              if (checkAuth()) {
                 connectWebSocket();
                 navigate("/home");
               }

@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
-import { signup, isAuthenticated } from "../services/AuthService";
+import { signup } from "../services/AuthService";
 import "./SignUp.css";
 import { useNavigate } from "react-router-dom";
+import { useUser, setToken } from "../services/UserContext";
 
 const SignUp = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ const SignUp = () => {
     const userName = useRef(null);
     const [userPassword, setUserPassword] = useState("");
     const [userPasswordConfirmation, setUserPasswordConfirmation] = useState("");
+    const {checkAuth, login} = useUser();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,9 +22,11 @@ const SignUp = () => {
             return;
         }
         const password = userPassword;
-        await signup({name,email,password});
-
-        if(isAuthenticated()){
+        const data = await signup({name,email,password});
+        const token = await data.token;
+        setToken(token);
+            
+        if(checkAuth()){
             navigate("/home");
         }
 
