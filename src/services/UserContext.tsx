@@ -59,6 +59,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const login = () => setIsAuthenticated(true);
 
   const logout = () => {
+    removeToken();
     disconnectWebSocket();
     setIsAuthenticated(false);
   };

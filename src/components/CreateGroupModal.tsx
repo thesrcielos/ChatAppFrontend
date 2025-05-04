@@ -14,13 +14,11 @@ const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGrou
   const [participants, setParticipants] = useState<Contact[]>([]);
   const [isSelectingContacts, setIsSelectingContacts] = useState(false);
 
-  // Si el modal no está abierto, no renderizamos nada
   if (!isOpen) return null;
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validación básica
     if (!groupName.trim()) {
       alert('Por favor ingresa un nombre para el grupo');
       return;

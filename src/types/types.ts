@@ -36,6 +36,7 @@ export interface Chat {
     contact: Contact;
     isGroup: boolean;
     group: Group;
+    image?: string;
 }
 
 export interface ContactSearch {

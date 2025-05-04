@@ -26,8 +26,9 @@ function ForceRedirect() {
   const location = useLocation();
 
   useEffect(() => {    
+    console.log('location', location.pathname);
     const isCallbackRoute = location.pathname.startsWith('/google/callback') 
-      || location.pathname.startsWith('/signup') || location.pathname.startsWith('/'); 
+      || location.pathname.startsWith('/signup') || location.pathname === '/'; 
     if (!isCallbackRoute) {
       navigate('/');
     }

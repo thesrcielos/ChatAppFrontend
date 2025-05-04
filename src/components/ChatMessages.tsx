@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@heroui/react"
 import {Smile, Send} from 'lucide-react';
 import MessageInput from "./MessageInput";
-import {sendAudioWS} from "../services/MessageService";
 import EmojiPicker from "emoji-picker-react";
 import AudioRecorder from "./AudioRecorder";
 import { useUser } from "../services/UserContext";
@@ -12,13 +11,15 @@ import { getUsersChatInfo, getChatMessages } from "../api/ChatApi";
 import { subscribe } from "../services/MessageService";
 import ChatMessage from "./ChatMessage";
 import { Chat, Contact, Message } from "@/types/types";
+import { Dispatch, SetStateAction } from "react";
 
 interface ChatMessagesProps {
-    selectedContact: Chat;
+    selectedContact: Chat | null;
     contact: Chat;
+    setChatLastMessage: Dispatch<SetStateAction<Record<string, Message>>>;
 }
 
-const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
+const ChatMessages = ({selectedContact, contact, setChatLastMessage} : ChatMessagesProps) => {
     const {userId} = useUser();
     const [showPicker, setShowPicker] = useState(false);
     const [isRecordingAudio, setIsRecordingAudio] = useState(false);
@@ -29,8 +30,9 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
 
     useEffect(() => {
         const getMessages = async () => {
-            const messages = await getChatMessages(contact.id, 0, 10);
+            const messages = await getChatMessages(contact.id, 0, 1);
             setMessages(messages.values);
+            setChatLastMessage((prev) => ({...prev, [contact.id]: messages.values[0]}));
             subscribe(String(contact.id), handleMessages);
             const users = await getUsersChatInfo(contact.id);
             const usersInfo = users.reduce((acc : { [key: string]: Contact }, user: Contact) => {
@@ -132,21 +134,21 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
                   <Smile />
                 </Button>
                 {showPicker && (
-                  <div className="absolute bottom-12">
+                  <div className="absolute left-10 bottom-10 z-10">
                     <EmojiPicker onEmojiClick={(emoji) => addEmoji(emoji.emoji)} />
                   </div>
                 )}
                 <MessageInput text={newMessage} setText={setNewMessage} sendMessage={sendMessageKeyEnter} />
               </>
-            )}
-            <Button onClick={sendMessage} className="bg-white text-gray">
-              {newMessage !== "" ? (
-                <Send className="w-5 h-5" onClick={sendMessage} />
-              ) : (
-                <AudioRecorder setMessage={setMessage}
+            )}      
+            {newMessage !== "" ? (
+              <Button onClick={sendMessage} className="p-1 m-0 bg-white text-gray">
+                <Send className="w-7 h-7" onClick={sendMessage} />
+              </Button>
+            ) : (
+              <AudioRecorder setMessage={setMessage}
                 contact={contact} onOpen={setIsRecordingAudio}/>
-              )}
-            </Button>
+            )}
           </footer>
         </main>);
 }

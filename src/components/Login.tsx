@@ -1,24 +1,62 @@
-import { useRef, useEffect } from "react";
-import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/AuthService";
-import { Input, Button, Card, Form } from "@heroui/react";
 import { connectWebSocket } from "../services/MessageService";
 import { useUser, setToken } from "../services/UserContext";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 export const Login = () => {
-  const userEmail = useRef<HTMLInputElement | null>(null);
-  const userPassword = useRef<HTMLInputElement | null>(null);
   const { checkAuth } = useUser();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<LoginFormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-    if (!userEmail.current || !userPassword.current) return;
+  const handleAuthentication = () => {
+    navigate("/home");
+    connectWebSocket();
+  };
 
-    const email = userEmail.current.value;
-    const password = userPassword.current.value;
+  useEffect(() => {
+    if (checkAuth()) {
+      console.log("login authenticated");
+      handleAuthentication();
+    }
+  }, [checkAuth]);
+
+  const onSubmit = async (values: LoginFormData) => {
+    const { email, password } = values;
+
+    // Validaciones
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      alert("Por favor, ingresa un correo electrónico válido.");
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
 
     try {
       const data = await loginUser({ email, password });
@@ -33,69 +71,70 @@ export const Login = () => {
     }
   };
 
-  useEffect(() => {
-    if (checkAuth()) {
-      console.log("login authenticated");
-      handleAuthentication();
-    }
-  }, [checkAuth]);
-
-  const handleAuthentication = async () => {
-    navigate("/home");
-    connectWebSocket();
-  };
-
   const handleGoogleLogin = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI; 
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
     const scope = "openid profile email";
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
     window.location.href = authUrl;
   };
 
   return (
-    <main>
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <Card className="flex flex-col justify-center items-center w-96 p-6 shadow-lg">
-          <h2 className="text-2xl font-bold text-center mb-4">Iniciar Sesión</h2>
+    <main className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-96 p-6 shadow-lg">
+        <h2 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
 
-          <Form onSubmit={handleSubmit} className="text-left">
-            <Input
-              type="email"
-              placeholder="Email"
-              label="Email"
-              ref={userEmail}
-              required
-              className="flex justify-start items-start"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="correo@ejemplo.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Input
-              type="password"
-              placeholder="Password"
-              label="Password"
-              ref={userPassword}
-              className="w-full"
-              required
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contraseña</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Button type="submit" color="primary">
+
+            <Button type="submit" className="w-full">
               Ingresar
             </Button>
-            <div className="signup-link">
-              <p>
-                ¿No tienes cuenta? <a href="/signup">Regístrate aquí</a>
-              </p>
-            </div>
-          </Form>
+          </form>
+        </Form>
 
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={handleGoogleLogin}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
-            >
-              Iniciar sesión con Google
-            </button>
-          </div>
-        </Card>
-      </div>
+        <div className="text-center mt-4">
+          <p>
+            ¿No tienes cuenta? <a href="/signup" className="text-blue-600 underline">Regístrate aquí</a>
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleGoogleLogin}
+            className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+          >
+            Iniciar sesión con Google
+          </button>
+        </div>
+      </Card>
     </main>
   );
 };

@@ -55,6 +55,16 @@ export const getContactRequests = async (id: number, page: number, size: number)
     }
 }
 
+export const getContactRequestsSent = async (id: number, page: number, size: number) => {
+  try {
+      const data = await api.get(`${BACKEND_URL}/users/${id}/contacts/requested-sent?page=${page}&size=${size}`);
+      return await data.data;
+    } catch (error) {
+      console.error('Error al crear el post:', error);
+      return false;
+    }
+}
+
 export const getUserContacts = async (id: number, page: number, size: number) => {
   try {
       const data = await api.get(`${BACKEND_URL}/users/${id}/contacts?page=${page}&size=${size}`);
