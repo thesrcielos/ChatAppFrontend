@@ -1,6 +1,11 @@
 import { useRef, useEffect } from "react";
 
-const MessageInput = ({text, setText, sendMessage}) => {
+interface MessageInputProps {
+    text: string;
+    setText: (text: string) => void;
+    sendMessage: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  }
+const MessageInput = ({text, setText, sendMessage} : MessageInputProps) => {
     const textareaRef = useRef(null);
   
     // Función para manejar cambios en el texto

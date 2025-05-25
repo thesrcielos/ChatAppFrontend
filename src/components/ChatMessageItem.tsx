@@ -1,8 +1,7 @@
 import { Chat, Message } from "@/types/types"
 import { useChatStore } from "@/store/chatStore"
-import { useUser } from "@/services/UserContext"
+import GroupChatMessage from "./GroupChatMessage";
 import ChatMessage from "./ChatMessage";
-import AudioMessagePlayer from "./AudioMessagePlayer";
 import { getHourFromDate } from "@/utils/dateUtils";
 
 interface ChatMessageItemProps {
@@ -11,16 +10,15 @@ interface ChatMessageItemProps {
 }
 const ChatMessageItem = ({ message, chat } : ChatMessageItemProps) => {
     const contacts = useChatStore((state) => state.contacts);
-    const {userId} = useUser();
-    if(chat.isGroup && Number(message.userId) !== Number(userId)) {
+    if(chat.isGroup) {
         const user = !!contacts[message.userId] ? contacts[message.userId] : {name: "Loading..."};
-        return <ChatMessage username={user.name} message={message}
+        return <GroupChatMessage username={user.name} message={message}
             timestamp={getHourFromDate(message.sentAt)}/>
     }
-    
-    return !!message.fileType ? (<AudioMessagePlayer audioSrc={message?.fileUrl ?? ""}/>) : (
-        <p className="mt-1">{message.message}</p>
+    return (
+        <ChatMessage message={message}/>
     )
+    
 }
 
 export default ChatMessageItem;

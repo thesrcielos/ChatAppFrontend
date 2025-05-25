@@ -7,6 +7,7 @@ import { useChatStore } from "@/store/chatStore";
 import ChatHeader from "./ChatHeader";
 import ChatBody from "./ChatBody";
 import ChatFooter from "./ChatFooter";
+import { markSeenMessages } from "@/services/MessageService";
 
 interface ChatMessagesProps {
     selectedContact: Chat | null;
@@ -23,7 +24,7 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
     const addMessages = useChatStore((state) => state.addMessages);
     const setMessages = useChatStore((state) => state.setMessages);
     const setContacts = useChatStore((state) => state.setContacts);
-    
+    const handleSeenMessage = useChatStore((state) => state.handleSeenMessage);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [dataFetched, setDataFetched] = useState(false);
     const isOpen = selectedContact?.id === contact.id;
@@ -48,12 +49,34 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
     useEffect(() => {
       if (!isOpen) return;
       getMessagesFromChat();
+      markMessagesAsSeen();
     }, [isOpen]);
 
     useEffect(() => {
       handleScroll();
+      markMessagesAsSeen();
     }, [messages]);
     
+    let seenTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const markMessagesAsSeen = () => {
+    if (!contact.id || contact.unseenMessages <= 0 || !isOpen) return;
+
+    if (seenTimeout) {
+      clearTimeout(seenTimeout);
+    }
+    seenTimeout = setTimeout(() => {
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage) return;
+
+      const messageId = lastMessage.messageId;
+      if (!messageId || !userId) return;
+
+      const conversationId = contact.id;
+      markSeenMessages(String(conversationId), messageId, userId);
+      handleSeenMessage(String(contact.id));
+      }, 2000);
+  };
 
     const handleScroll = () => {
       const container = containerRef.current;

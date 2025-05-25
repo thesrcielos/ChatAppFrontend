@@ -14,6 +14,7 @@ type ChatState = {
   moveChatToTop: (chat: Chat) => void;
   moveChatToTopId: (chatId: String) => void;
   handleNewMessage: (chatId: string) => void;
+  handleSeenMessage: (chatId: string) => void;
 };
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -63,8 +64,6 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
   handleNewMessage: (chatId) =>
     set((state) => {
-      console.log("handleNewMessage", chatId);
-      console.log("state.chats", state.chats[0].id);
       const newChats = state.chats.map((chat) => {
       return String(chat.id) === String(chatId)
         ? {...chat, unseenMessages: chat.unseenMessages + 1} 
@@ -75,4 +74,15 @@ export const useChatStore = create<ChatState>((set) => ({
         chats: newChats,
       };
   }),
+  handleSeenMessage: (chatId) =>
+    set((state) => {
+      const newChats = state.chats.map((chat) => {
+        return String(chat.id) === String(chatId)
+          ? {...chat, unseenMessages: 0} 
+          : chat;
+      });
+      return {
+        chats: newChats,
+      };
+    }),
 }));

@@ -33,6 +33,7 @@ export default function ChatApp() {
         if (!!token) {
           let payload : any = jwtDecode(token);
           setUserId(payload.id);
+          console.log(payload.id);
           await getChats(payload.id);
         }
       }
