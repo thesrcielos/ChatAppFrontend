@@ -1,0 +1,46 @@
+#root, body{
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+}
+
+.s-contacts input{
+    padding-bottom: 3px;
+}
+
+.container-chat{
+    width: 100%;
+}
+
+.search-contacts {
+    height: 40px;
+}
+.search-contacts div{
+    box-shadow: none;
+    margin: 0;
+}
+
+.search-contacts input{
+    border: none;
+    outline: none;
+    box-shadow: none;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.input-container textarea {
+    height: 35px;
+    max-height: 120px;
+    margin-bottom: 0;
+}
+
+.text-container {
+    background-color: white;
+    border-top: solid 1px gray;
+}
+
+.text-container button {
+    background-color: transparent;
+    color: gray;
+    font-size: 20px;
+}

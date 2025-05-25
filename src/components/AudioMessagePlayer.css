@@ -1,0 +1,12 @@
+.audio-control {
+    margin-bottom: 0;
+}
+
+.audio-play {
+    background: transparent;
+    color: inherit;
+}
+
+.audio-ms{
+    padding: 0;
+}
