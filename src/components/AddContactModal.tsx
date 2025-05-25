@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, Search } from "lucide-react";
 import { getUsersByPatterns, sendContactRequest } from "../api/UserApi";
-import { useUser } from "../services/UserContext";
-import { ContactSearch } from "../types/types";
+import { useUser } from "@/services/UserContext";
+import { ContactSearch } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

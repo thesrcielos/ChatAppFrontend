@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
 import { getUserChats, getUserChatsByPatterns} from "../api/ChatApi";
 import {createGroupChat} from "../api/GroupApi";
-import { useUser } from "../services/UserContext";
+import { useUser } from "@/services/UserContext";
 import {jwtDecode} from "jwt-decode";
 import AddContactModal from "./AddContactModal";
 import RequestsModal from "./RequestModal";
@@ -33,6 +33,7 @@ export default function ChatApp() {
         if (!!token) {
           let payload : any = jwtDecode(token);
           setUserId(payload.id);
+          console.log(payload.id);
           await getChats(payload.id);
         }
       }

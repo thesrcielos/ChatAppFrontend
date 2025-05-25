@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../services/AuthService";
-import { connectWebSocket } from "../services/MessageService";
-import { useUser, setToken } from "../services/UserContext";
+import { loginUser } from "@/services/AuthService";
+import { connectWebSocket } from "@/services/MessageService";
+import { useUser, setToken } from "@/services/UserContext";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mic, CircleStop, Trash, Send, Dot } from 'lucide-react';
 import { sendAudioMessage } from '../api/ChatApi';
-import { useUser } from '../services/UserContext';
+import { useUser } from '@/services/UserContext';
 import "./AudioRecorder.css";
 import { Chat, Message } from '@/types/types';
 import {toLocalISOString} from '@/utils/dateUtils';
