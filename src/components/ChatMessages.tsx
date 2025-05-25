@@ -1,17 +1,12 @@
-import { useState, useEffect } from "react";
-import { Button } from "@heroui/react"
-import {Smile, Send} from 'lucide-react';
-import MessageInput from "./MessageInput";
-import EmojiPicker from "emoji-picker-react";
-import AudioRecorder from "./AudioRecorder";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "../services/UserContext";
-import { sendMessageWS } from "../services/MessageService";
-import AudioMessagePlayer from "./AudioMessagePlayer";
 import { getUsersChatInfo, getChatMessages } from "../api/ChatApi";
-import { subscribe } from "../services/MessageService";
-import ChatMessage from "./ChatMessage";
-import { Chat, Contact, Message } from "@/types/types";
+import { Chat, Message } from "@/types/types";
 import { Dispatch, SetStateAction } from "react";
+import { useChatStore } from "@/store/chatStore";
+import ChatHeader from "./ChatHeader";
+import ChatBody from "./ChatBody";
+import ChatFooter from "./ChatFooter";
 
 interface ChatMessagesProps {
     selectedContact: Chat | null;
@@ -19,138 +14,88 @@ interface ChatMessagesProps {
     setChatLastMessage: Dispatch<SetStateAction<Record<string, Message>>>;
 }
 
-const ChatMessages = ({selectedContact, contact, setChatLastMessage} : ChatMessagesProps) => {
+const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
     const {userId} = useUser();
-    const [showPicker, setShowPicker] = useState(false);
-    const [isRecordingAudio, setIsRecordingAudio] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const [message, setMessage] = useState<Message | null>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [usersInfo, setUsersInfo] = useState<Record<string, Contact>>({});
+    const messages = useChatStore((state) => state.messages[String(contact.id)]);
+    const addMessage = useChatStore((state) => state.addMessage);
+    const addMessages = useChatStore((state) => state.addMessages);
+    const setMessages = useChatStore((state) => state.setMessages);
+    const setContacts = useChatStore((state) => state.setContacts);
+    
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [dataFetched, setDataFetched] = useState(false);
+    const isOpen = selectedContact?.id === contact.id;
 
     useEffect(() => {
         const getMessages = async () => {
-            const messages = await getChatMessages(contact.id, 0, 1);
-            setMessages(messages.values);
-            setChatLastMessage((prev) => ({...prev, [contact.id]: messages.values[0]}));
-            subscribe(String(contact.id), handleMessages);
-            const users = await getUsersChatInfo(contact.id);
-            const usersInfo = users.reduce((acc : { [key: string]: Contact }, user: Contact) => {
-              acc[user.id] = user;
-              return acc;
-            }, {});
-            setUsersInfo(usersInfo);
+           if (!contact.id) return;
+          const users = await getUsersChatInfo(contact.id);
+          setContacts(users);
+          let date = new Date();
+          const messages = await getChatMessages(contact.id, date, 1);
+          setMessages(String(contact.id), messages.values);
         }
         getMessages();
-    }, []);
+    }, [contact.id]);
 
     useEffect(() => {
         if (!message) return;
-        console.log("New message: ", message);
-        setMessages((prev: Message[]) => [...prev, message]);
+        addMessage(String(contact.id), message);
     }, [message]);
-
-    const handleMessages = (message: Message) => {
-        setMessage(message);
-    }
-    const sendMessageKeyEnter = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          sendMessage();
-        }
-    }
-
-    function getHourFromDate(timestamp: Date) {
-      const date = new Date(timestamp);
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    }
-
-    const convertMessage = (message: Message) => {
-        if(contact.isGroup && Number(message.userId) !== Number(userId)) {
-          const user = !!usersInfo[message.userId] ? usersInfo[message.userId] : {name: "Loading..."};
-          return <ChatMessage username={user.name} message={message}
-          timestamp={getHourFromDate(message.sentAt)}/>
-        }
-        return !!message.fileType ? (<AudioMessagePlayer audioSrc={message?.fileUrl ?? ""}/>) : (
-          <p className="mt-1">{message.message}</p>
-          )
-    }
-
-    const addEmoji = (emoji: string) => {
-        setNewMessage(newMessage + emoji);
-      }
     
-      const sendMessage = () => {
-        if (newMessage.trim() === "") return;
-        const id = contact.isGroup ? userId : contact.contact.id;
-        sendMessageWS({content: newMessage,
-                    conversationId: contact.id,
-                    contactId: id,
-                    sentAt: new Date()
-        });
-        setMessages([...messages, {  message: newMessage, userId: userId ? Number(userId): 0,
-          sentAt: new Date(), conversationId: contact.id, messageId: "" }]);
-        setShowPicker(false);
-        setNewMessage("");
+    useEffect(() => {
+      if (!isOpen) return;
+      getMessagesFromChat();
+    }, [isOpen]);
+
+    useEffect(() => {
+      handleScroll();
+    }, [messages]);
+    
+
+    const handleScroll = () => {
+      const container = containerRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    const getMessagesFromChat = async () => {
+      if(dataFetched) { 
+        return;
+      }
+      const date = messages.length > 0 ? new Date(messages[messages.length - 1].sentAt) : new Date();
+      const PAGE_SIZE = 49;
+      const data = await getChatMessages(contact.id, date, PAGE_SIZE);
+      console.log("Mensajes obtenidos:", data);
+      addMessages(String(contact.id), data.values);
+      setDataFetched(true);
     }
 
     const getChatName = () => {
-        if (contact.isGroup) {
-          return contact.group.name;
-        }
-        return contact.contact.name;
+      if (contact.isGroup) {
+        return contact.group.name;
+      }
+      return contact.contact.name;
     };
 
-    if (selectedContact?.id !== contact.id) {
+    if (!isOpen) {
       return null;
-    }
-
+    } 
     return (
-        <main className="flex-1 flex flex-col w-3/5">
-          <header className="p-4 bg-blue-500 text-white font-bold text-lg">
-            {getChatName()}
-          </header>
-    
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-white">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`p-2 text-left rounded-lg max-w-xs ${
-                  Number(msg.userId) === Number(userId) ? "ml-auto bg-blue-500 text-white" : "bg-gray-200 text-black"
-                }`}
-              >
-                {convertMessage(msg)}
-              </div>
-            ))}
-          </div>
-    
-          <footer className="relative text-container pt-2 pb-2 pl-4 pr-4 bg-white 
-          flex items-end justify-end gap-2">
-            { !isRecordingAudio && (
-              <>
-                <Button onPress={() => setShowPicker(!showPicker)}>
-                  <Smile />
-                </Button>
-                {showPicker && (
-                  <div className="absolute left-10 bottom-10 z-10">
-                    <EmojiPicker onEmojiClick={(emoji) => addEmoji(emoji.emoji)} />
-                  </div>
-                )}
-                <MessageInput text={newMessage} setText={setNewMessage} sendMessage={sendMessageKeyEnter} />
-              </>
-            )}      
-            {newMessage !== "" ? (
-              <Button onClick={sendMessage} className="p-1 m-0 bg-white text-gray">
-                <Send className="w-7 h-7" onClick={sendMessage} />
-              </Button>
-            ) : (
-              <AudioRecorder setMessage={setMessage}
-                contact={contact} onOpen={setIsRecordingAudio}/>
-            )}
-          </footer>
-        </main>);
+      <main className="flex-1 flex flex-col w-3/5">
+        <ChatHeader chatName={getChatName()} />
+        <ChatBody messages={messages} userId={userId} chat={contact} />
+        <ChatFooter
+          chat={contact}
+          userId={userId}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          setMessage={setMessage}
+        />
+      </main>);
 }
 
 export default ChatMessages;

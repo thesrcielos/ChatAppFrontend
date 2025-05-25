@@ -26,7 +26,7 @@ export interface MessageRequest {
     content?: string;
     conversationId?: number;
     contactId: number;
-    sentAt: Date;
+    sentAt: string;
     fileType?: FileType;
     fileUrl?: string;
 }
@@ -37,6 +37,7 @@ export interface Chat {
     isGroup: boolean;
     group: Group;
     image?: string;
+    unseenMessages: number;
 }
 
 export interface ContactSearch {

@@ -14,9 +14,11 @@ import ListChatMessages from "./ListChatMessages";
 import { Chat, Message } from "@/types/types";
 import UserMenu from "./UserMenu";
 import ChatListItem from "./ChatListItem";
+import { useChatStore } from "@/store/chatStore";
 
 export default function ChatApp() {
-  const [contacts, setContacts] = useState<Chat[]>([]);
+  const contacts = useChatStore((state) => state.chats);
+  const setContacts = useChatStore((state) => state.setChats);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const {userId, setUserId} = useUser();
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
@@ -36,7 +38,6 @@ export default function ChatApp() {
       }
     load();
   }, []);
-
 
   const getChats = async (id: number) => {
     const data = await getUserChats(id, 0, 10);
@@ -80,7 +81,7 @@ export default function ChatApp() {
           />
         </div>
       </CardHeader>
-        <CardContent className="w-[100%] p-0 overflow-y-auto">
+        <CardContent className="relative w-[100%] p-0 overflow-y-auto">
           {contacts?.length > 0 ? (
             contacts.map((chat) => (
                 <ChatListItem key={chat.id} onClick={()=>setContact(chat)}

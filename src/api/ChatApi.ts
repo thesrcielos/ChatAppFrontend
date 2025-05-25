@@ -1,6 +1,8 @@
 import { MessageRequest } from "@/types/types";
 import axiosInstance from "./Api.js";
 import axios from "axios";
+import { toLocalISOString } from "@/utils/dateUtils";
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api/chats";
 
 const api = axiosInstance();
@@ -27,9 +29,10 @@ export const editMessage = async (id: string, message: string) => {
       }
 }
 
-export const getChatMessages = async (id: number, page: number, size: number) => {
+export const getChatMessages = async (id: number, beforeDate: Date, size: number) => {
     try {
-        const data = await api.get(`${BACKEND_URL}/conversation/${id}/messages?page=${page}&size=${size}`);
+        const dateTime = toLocalISOString(beforeDate);
+        const data = await api.get(`${BACKEND_URL}/conversation/${id}/messages/before?beforeDate=${dateTime}&size=${size}`);
         return await data.data;
       } catch (error) {
         console.error('Error al crear el post:', error);

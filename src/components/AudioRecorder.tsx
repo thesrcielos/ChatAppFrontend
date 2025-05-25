@@ -4,6 +4,7 @@ import { sendAudioMessage } from '../api/ChatApi';
 import { useUser } from '../services/UserContext';
 import "./AudioRecorder.css";
 import { Chat, Message } from '@/types/types';
+import {toLocalISOString} from '@/utils/dateUtils';
 
 interface AudioRecorderProps {
   contact: Chat;
@@ -57,7 +58,7 @@ const AudioRecorder = ({ contact, onOpen, setMessage }: AudioRecorderProps) => {
           const data = await sendAudioMessage(finalBlob, {
             conversationId: contact.id,
             contactId: id ? parseInt(id, 10) : 0,
-            sentAt: new Date()
+            sentAt: toLocalISOString(new Date())
           });
           setMessage(data);
 
@@ -114,12 +115,22 @@ const AudioRecorder = ({ contact, onOpen, setMessage }: AudioRecorderProps) => {
   };
 
   const pausarGrabacion = () => {
-    if (estado === 'grabando' && mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop(); // Not really a "pause", just ends the current session
+    if (estado === 'grabando' && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.pause();
       setEstado('pausado');
       if (timerRef.current) clearInterval(timerRef.current);
     }
   };
+
+  const reanudarGrabacion = () => {
+  if (estado === 'pausado' && mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
+    mediaRecorderRef.current.resume();
+    setEstado('grabando');
+    timerRef.current = setInterval(() => {
+      setDuracion(prev => prev + 1);
+    }, 1000);
+  }
+};
 
   const formatearTiempo = (segundos: number) => {
     const minutos = Math.floor(segundos / 60);
@@ -143,29 +154,29 @@ const AudioRecorder = ({ contact, onOpen, setMessage }: AudioRecorderProps) => {
       case 'inactivo':
         return (
           <button onClick={iniciarGrabacion} className="boton-grabador bg-transparent border-none">
-            <Mic className='w-7 h-7' />
+            <Mic className='w-7 h-7' arial-label="Grabar audio"/>
           </button>
         );
       case 'grabando':
         return (
           <div className="contenedor-grabando">
-            <button onClick={cancelarGrabacion}><Trash /></button>
+            <button onClick={cancelarGrabacion}><Trash aria-label='Eliminar audio'/></button>
             <span className="tiempo-grabacion"><Dot /> {formatearTiempo(duracion)}</span>
             <div className="botones-grabacion">
-              <button onClick={pausarGrabacion}><CircleStop /></button>
-              <button onClick={enviarAudio}><Send /></button>
+              <button onClick={pausarGrabacion}><CircleStop arial-label='Detener grabacion'/></button>
+              <button onClick={enviarAudio}><Send aria-label='Enviar audio'/></button>
             </div>
           </div>
         );
       case 'pausado':
         return (
           <div className="contenedor-pausado inline-flex">
-            <button onClick={cancelarGrabacion}><Trash /></button>
+            <button onClick={cancelarGrabacion}><Trash aria-label='Eliminar audio'/></button>
             <span className="tiempo-grabacion"><Dot /> {formatearTiempo(duracion)}</span>
             <audio src={audioURL} controls className="reproductor-audio" />
             <div className="botones-grabacion">
-              <button onClick={iniciarGrabacion}><Mic /></button>
-              <button onClick={enviarAudio}><Send /></button>
+              <button onClick={reanudarGrabacion}><Mic aria-label='Continuar grabacion'/></button>
+              <button onClick={enviarAudio}><Send aria-label='Enviar audio'/></button>
             </div>
           </div>
         );

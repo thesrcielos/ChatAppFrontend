@@ -1,6 +1,7 @@
 import { MessageSquareText } from 'lucide-react';
 import { Chat, Message } from '@/types/types';
-import { useUser } from '../services/UserContext';
+import { useChatStore } from '@/store/chatStore';
+import { useUser } from '@/services/UserContext';
 
 interface ChatListItemProps {
     chat: Chat;
@@ -8,22 +9,29 @@ interface ChatListItemProps {
     lastMessage?: Message;
     isActive: boolean;
 }
-const ChatListItem = ({ chat, onClick, lastMessage, isActive } : ChatListItemProps) => {
-  const defaultImage = <MessageSquareText className="text-gray-500" size={24} />;
+const ChatListItem = ({ chat, onClick, isActive } : ChatListItemProps) => {
   const {userId} = useUser();
+  const contacts = useChatStore((state) => state.contacts);
+  const defaultImage = <MessageSquareText className="text-gray-500" size={24} />;
+  const lastMessage = useChatStore((state) => state.messages[String(chat.id)]);
+
   const getChatName = () => {
     if (chat.isGroup) {
         return chat.group.name;
         } else {
         return chat.contact.name;
-        }
     }
+  }
 
   const getLastMessage = () => {
     if (lastMessage) {
-      //const sender = lastMessage.userId;
-      //let message = sender === userId ? "Tú:" : `${lastMessage.user.name}: `;
-      return lastMessage.message || lastMessage.fileType;
+      const message = lastMessage[lastMessage.length - 1];
+      if(chat.isGroup) {
+        const sender = String(message.userId) === userId ? "Tú: " : contacts[message.userId].name +": ";
+        return sender + (message.message || message.fileType);
+      }
+      const sender = String(message.userId) === userId ? "Tú: " : "";
+      return sender + (message.message || message.fileType);
     }
     return null;
   }
@@ -46,11 +54,15 @@ const ChatListItem = ({ chat, onClick, lastMessage, isActive } : ChatListItemPro
       </div>
       <div className="flex-1">
         <h3 className="font-medium text-left text-gray-800 truncate">{getChatName()}</h3>
-        <p className="text-sm text-left text-gray-500 truncate">hola</p>
         { lastMessage && (
-          <p className="text-sm text-gray-500 truncate">{getLastMessage()}</p>
+          <p className="text-sm text-left text-gray-500 truncate">{getLastMessage()}</p>
         )}
       </div>
+      {chat.unseenMessages > 0 && (
+        <div className="ml-2 bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          {chat.unseenMessages}
+        </div>
+      )}
     </div>
   );
 };
