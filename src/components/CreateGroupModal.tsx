@@ -26,12 +26,10 @@ const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGrou
   
     const userList = participants.map((user) => user.contact);
     onCreateGroup(groupName, userList)
-    // Limpiar el formulario
     setGroupName('');
     setDescription('');
     setParticipants([]);
-    
-    // Cerrar el modal
+
     onClose(false);
   };
   

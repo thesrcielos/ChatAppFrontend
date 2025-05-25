@@ -1,6 +1,8 @@
 import { useRef, useEffect } from "react";
 import { Chat, Message } from "@/types/types";
 import ChatMessageItem from "./ChatMessageItem";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface ChatBodyProps {
   messages: Message[];
@@ -10,6 +12,7 @@ interface ChatBodyProps {
 
 const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  let lastDate: String = "";
 
   useEffect(() => {
     const container = containerRef.current;
@@ -20,7 +23,16 @@ const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
 
   return (
     <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-white" ref={containerRef}>
-      {messages.map((msg, index) => (
+      {messages.map((msg, index) => {
+        const msgDate = format(new Date(msg.sentAt), "yyyy-MM-dd");
+        const showDate = msgDate !== lastDate;
+        lastDate = msgDate;
+        return <div>    
+        {showDate && (
+          <div className="text-center my-5 text-gray-500 text-md" >
+            {format(new Date(msg.sentAt), "d 'de' MMMM yyyy", { locale: es })}
+          </div>
+        )}
         <div
           key={index}
           className={`p-2 text-left rounded-lg max-w-xs ${
@@ -31,7 +43,8 @@ const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
         >
           <ChatMessageItem message={msg} chat={chat}/>
         </div>
-      ))}
+        </div>
+      })}
     </div>
   );
 };

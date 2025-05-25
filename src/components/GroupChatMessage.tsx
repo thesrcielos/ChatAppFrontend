@@ -1,5 +1,5 @@
 import AudioMessagePlayer from "./AudioMessagePlayer";
-import { Message } from "../types/types";
+import { Message } from "@/types/types";
 import { useUser } from "@/services/UserContext";
 
 interface ChatMessageProps {

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { Smile, Send } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import MessageInput from "./MessageInput";
 import AudioRecorder from "./AudioRecorder";
 import { Message, Chat } from "@/types/types";
 import { toLocalISOString } from "@/utils/dateUtils";
-import { sendMessageWS } from "../services/MessageService";
+import { sendMessageWS } from "@/services/MessageService";
 import { useChatStore } from "@/store/chatStore";
 
 interface ChatFooterProps {
@@ -68,7 +68,7 @@ const ChatFooter = ({
     <footer className="relative text-container pt-2 pb-2 pl-4 pr-4 bg-white flex items-end justify-end gap-2">
       {!isRecordingAudio && (
         <>
-          <Button onPress={() => setShowPicker(!showPicker)}>
+          <Button onClick={() => setShowPicker(!showPicker)}>
             <Smile />
           </Button>
           {showPicker && (

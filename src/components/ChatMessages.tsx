@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useUser } from "../services/UserContext";
-import { getUsersChatInfo, getChatMessages } from "../api/ChatApi";
+import { useUser } from "@/services/UserContext";
+import { getUsersChatInfo, getChatMessages } from "@/api/ChatApi";
 import { Chat, Message } from "@/types/types";
 import { Dispatch, SetStateAction } from "react";
 import { useChatStore } from "@/store/chatStore";
