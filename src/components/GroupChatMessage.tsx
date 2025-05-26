@@ -21,7 +21,7 @@ const GroupChatMessage = ({ username, message, timestamp, avatar }: ChatMessageP
       )
     }
     return (
-      <div className="flex gap-3 hover:bg-gray-50 rounded-lg">
+      <div className="flex gap-3 rounded-lg">
       <div className="flex-shrink-0">
       {avatar ? (
           <img src={avatar} alt={username} className="w-10 h-10 rounded-full" />
