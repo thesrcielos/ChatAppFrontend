@@ -23,7 +23,7 @@ const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
 
   return (
     <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-white" ref={containerRef}>
-      {messages.map((msg, index) => {
+      {messages &&  messages.map((msg, index) => {
         const msgDate = format(new Date(msg.sentAt), "yyyy-MM-dd");
         const showDate = msgDate !== lastDate;
         lastDate = msgDate;

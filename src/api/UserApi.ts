@@ -2,6 +2,11 @@ import axiosInstance from "./Api.js";
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api";
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 
 const api = axiosInstance();
 export const acceptContact = async (id: number) => {
@@ -108,3 +113,66 @@ export const getUsersByPatterns = async (pattern: string, page: number, size: nu
     return false;
   }
 }
+export const getUserInfo = async (userId: number): Promise<User | null> => {
+  try {
+    const token = localStorage.getItem("token");
+    console.log(token);
+    const response = await fetch(`http://localhost:8080/users/${userId}`, {
+      headers: {
+        Authorization : `Bearer ${token}`,
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: User = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error al obtener la información del usuario:", error);
+    return null;
+  }
+};
+export const uploadProfilePicture = async (
+  userId: number,
+  file: File
+): Promise<boolean> => {
+  // 1) Construyes el form data
+  const formData = new FormData();
+  formData.append("file", file);
+  // IMPORTANT: userId es un valor primitivo, pero FormData lo convierte a texto
+  formData.append("userId", String(userId));
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/files/profile-picture`, {
+      method: "POST",
+      headers: {
+        // NO pongas 'Content-Type' a mano; el browser lo asigna:
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+      body: formData, // ✅ aquí va el FormData
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error("Error al subir la foto de perfil:", error);
+    return false;
+  }
+};
+
+
+export const deleteProfilePicture = async (userId: number): Promise<void> => {
+  const token = localStorage.getItem("token");
+  try {
+    await fetch(`${BACKEND_URL}/files/${userId}/profile-picture`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`, // si tu backend requiere auth
+      },
+    });
+  } catch (error) {
+    console.error("Error al eliminar la imagen de perfil:", error);
+  }
+};
+
+

@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
 import { getUserChats, getUserChatsByPatterns} from "../api/ChatApi";
 import {createGroupChat} from "../api/GroupApi";
+import Perfil from "./Profile"
 import { useUser } from "@/services/UserContext";
 import {jwtDecode} from "jwt-decode";
 import AddContactModal from "./AddContactModal";
@@ -22,6 +23,7 @@ export default function ChatApp() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const {userId, setUserId} = useUser();
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [contact, setContact] = useState<Chat | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewGroupOpen, setIsNewGroupOpen] = useState(false);
@@ -66,7 +68,9 @@ export default function ChatApp() {
       <CardHeader className="flex flex-col gap-4 justify-start items-start">
         <div className="w-full flex justify-between items-center gap-3">
           <h2 className="text-left font-bold text-lg flex-grow">Chats</h2>
-          <UserMenu onOpenRequests={() => setIsRequestsModalOpen(true)}
+          <UserMenu 
+            onOpenProfile={() => setIsProfileOpen(true)}
+            onOpenRequests={() => setIsRequestsModalOpen(true)}
             onAddContact={() => setIsModalOpen(true)}
             onCreateGroup={() => setIsNewGroupOpen(true)}/> 
         </div>
@@ -81,6 +85,12 @@ export default function ChatApp() {
             className="w-full text-xl border-none focus:outline-none focus:ring-0 bg-transparent ml-2"
           />
         </div>
+        {isProfileOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <Perfil onClose={() => setIsProfileOpen(false)} />
+          </div>
+        )}
+        
       </CardHeader>
         <CardContent className="relative w-[100%] p-0 overflow-y-auto">
           {contacts?.length > 0 ? (
@@ -101,6 +111,7 @@ export default function ChatApp() {
     <CreateGroupModal isOpen={isNewGroupOpen} onClose={setIsNewGroupOpen} onCreateGroup={createGroup}/>
     <AddContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     <RequestsModal isOpen={isRequestsModalOpen} onClose={() => setIsRequestsModalOpen(false)} />
+    
   </div>
   );
 }

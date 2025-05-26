@@ -1,4 +1,5 @@
 import { MoreVertical  } from "lucide-react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,12 +8,14 @@ import {
 } from "./ui/dropdown-menu"
 
 import { useUser } from "../services/UserContext";
+import { profile } from "console";
 interface UserMenuProps {
+    onOpenProfile: () => void;
     onOpenRequests: () => void;
     onAddContact: () => void;
     onCreateGroup: () => void;
 }   
-const UserMenu = ({onOpenRequests, onAddContact, onCreateGroup}: UserMenuProps) => {
+const UserMenu = ({onOpenProfile, onOpenRequests, onAddContact, onCreateGroup}: UserMenuProps) => {
     const { logout } = useUser();
     return (
         <DropdownMenu>
@@ -20,7 +23,7 @@ const UserMenu = ({onOpenRequests, onAddContact, onCreateGroup}: UserMenuProps) 
                 <MoreVertical/>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
+                <DropdownMenuItem onClick={onOpenProfile}>Perfil</DropdownMenuItem>
                 <DropdownMenuItem onClick={onOpenRequests}>Solicitudes</DropdownMenuItem>
                 <DropdownMenuItem onClick={onAddContact}>Añadir Contacto</DropdownMenuItem>
                 <DropdownMenuItem onClick={onCreateGroup}>Crear Grupo</DropdownMenuItem>
