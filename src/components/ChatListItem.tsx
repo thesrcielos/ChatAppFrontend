@@ -16,25 +16,25 @@ const ChatListItem = ({ chat, onClick, isActive } : ChatListItemProps) => {
   const lastMessage = useChatStore((state) => state.messages[String(chat.id)]);
 
   const getChatName = () => {
-    if (chat.isGroup) {
-        return chat.group.name;
-        } else {
-        return chat.contact.name;
-    }
+    return chat.isGroup ? chat.group.name : chat.contact.name;
   }
 
   const getLastMessage = () => {
     if (lastMessage) {
       const message = lastMessage[lastMessage.length - 1];
+      let messageText;
       if(chat.isGroup) {
         const sender = String(message.userId) === userId ? "Tú: " : contacts[message.userId].name +": ";
-        return sender + (message.message || message.fileType);
+        messageText = sender + (message.message || message.fileType);
+      } else{
+        const sender = String(message.userId) === userId ? "Tú: " : "";
+        messageText = sender + (message.message || message.fileType);
       }
-      const sender = String(message.userId) === userId ? "Tú: " : "";
-      return sender + (message.message || message.fileType);
+      return messageText.length > 40 ? messageText.slice(0, 40) + '...' : messageText;
     }
     return null;
   }
+
   return (
     <div 
       className={`flex items-center p-3 cursor-pointer hover:bg-gray-200 rounded-md transition-colors ${
