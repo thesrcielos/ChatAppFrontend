@@ -5,6 +5,7 @@ import { useUser } from "@/services/UserContext";
 import { ContactSearch } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Check } from "lucide-react";
 
 interface AddContactModalProps {
   isOpen: boolean;
@@ -15,13 +16,17 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState<ContactSearch[]>([]);
   const { userId } = useUser();
+  const [contactsAdded, setContactsAdded] = useState(new Set<string>());
 
   const handleSearch = async () => {
-    const coincidences = await getUsersByPatterns(searchTerm, 0, 5);
+    const coincidences = await getUsersByPatterns(searchTerm, userId ?? "", 0, 5);
     setSearchResult(coincidences.values);
   };
 
   const sendRequest = async (id: number) => {
+    let newContactsAdded = new Set(contactsAdded);
+    newContactsAdded.add(id.toString());
+    setContactsAdded(newContactsAdded);
     await sendContactRequest(Number(userId), id);
   };
 
@@ -30,7 +35,6 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        {/* Encabezado */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">Añadir Contacto</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -38,7 +42,6 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
           </Button>
         </div>
 
-        {/* Campo de búsqueda */}
         <div className="flex items-center gap-2 mb-4">
           <Input
             type="text"
@@ -46,12 +49,11 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button onClick={handleSearch} variant="default">
+          <Button onClick={handleSearch} className="cursor-pointer" variant="default">
             <Search className="w-5 h-5" />
           </Button>
         </div>
 
-        {/* Resultados */}
         <div className="space-y-2">
           {searchResult.length > 0 ? (
             searchResult.map((contact) => (
@@ -63,13 +65,19 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
                   <p className="font-medium">{contact.name}</p>
                   <p className="text-sm text-gray-500">{contact.email}</p>
                 </div>
+                {!contactsAdded.has(contact.userId.toString()) ? (
                 <Button
+                  className="cursor-pointer"
                   onClick={() => sendRequest(contact.userId)}
                   variant="secondary"
                   size="sm"
                 >
                   Agregar
-                </Button>
+                </Button>) : (
+                  <Button disabled variant="secondary" size="sm">
+                    <Check className="w-6 h-6" />
+                  </Button>
+                )}
               </div>
             ))
           ) : (

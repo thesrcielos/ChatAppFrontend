@@ -73,7 +73,7 @@ const ChatFooter = ({
           </Button>
           {showPicker && (
             <div className="absolute left-10 bottom-10 z-10">
-              <EmojiPicker onEmojiClick={(emoji) => addEmoji(emoji.emoji)} />
+              <EmojiPicker className="h-8 w-8" onEmojiClick={(emoji) => addEmoji(emoji.emoji)} />
             </div>
           )}
           <MessageInput text={newMessage} setText={setNewMessage} sendMessage={sendMessageKeyEnter} />
