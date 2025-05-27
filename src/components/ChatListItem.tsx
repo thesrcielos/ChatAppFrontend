@@ -6,7 +6,6 @@ import { useUser } from '@/services/UserContext';
 interface ChatListItemProps {
     chat: Chat;
     onClick: () => void;
-    lastMessage?: Message;
     isActive: boolean;
 }
 const ChatListItem = ({ chat, onClick, isActive } : ChatListItemProps) => {
@@ -20,7 +19,7 @@ const ChatListItem = ({ chat, onClick, isActive } : ChatListItemProps) => {
   }
 
   const getLastMessage = () => {
-    if (lastMessage) {
+    if (lastMessage && lastMessage.length > 0) {
       const message = lastMessage[lastMessage.length - 1];
       let messageText;
       if(chat.isGroup) {

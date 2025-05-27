@@ -1,22 +1,17 @@
-import { Chat, Message } from "@/types/types";
+import { Chat } from "@/types/types";
 import ChatMessages from "./ChatMessages";
-import { Dispatch, SetStateAction } from "react";
 
 interface ListChatMessagesProps {
-    selectedContact: Chat | null;
     contacts: Chat[];
-    setLastMessages: Dispatch<SetStateAction<Record<string, Message>>>;
 }
 
-const ListChatMessages = ({selectedContact, contacts, setLastMessages}: ListChatMessagesProps ) => {
+const ListChatMessages = ({contacts}: ListChatMessagesProps ) => {
 
     return (
-        contacts.map((contact) => {
+        contacts.map((chat) => {
             return <ChatMessages 
-                key={contact.id}
-                contact={contact}
-                setChatLastMessage={setLastMessages}
-                selectedContact={selectedContact}
+                key={chat.id}
+                chat={chat}
             />
         })
     )

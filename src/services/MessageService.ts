@@ -28,6 +28,7 @@ export const connectWebSocket = (): void => {
         useChatStore.getState().handleNewMessage(conversationId);
         useChatStore.getState().moveChatToTopId(conversationId);
       });
+      subscribeToNewChats();
     },
     onStompError: (frame) => {
       console.error("Error en STOMP:", frame.headers["message"]);
@@ -36,6 +37,19 @@ export const connectWebSocket = (): void => {
 
   stompClient.activate();
 };
+
+const subscribeToNewChats = (): void => {
+  if (stompClient && stompClient.connected) {
+    stompClient.subscribe("/user/topic/chat", (message: IMessage) => {
+      const data = JSON.parse(message.body);
+      useChatStore.getState().updateChat(data);
+      useChatStore.getState().addContact(data.contact);
+      useChatStore.getState().setSelectedChat(data.id);
+    });
+  } else {
+    console.error("No se pudo suscribir a nuevos chats, WebSocket no conectado");
+  }
+}
 
 export const disconnectWebSocket = (): void => {
   if (stompClient) {

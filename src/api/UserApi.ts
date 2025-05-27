@@ -1,3 +1,4 @@
+import { ZodNumberCheck } from "zod";
 import axiosInstance from "./Api.js";
 
 
@@ -99,9 +100,9 @@ export const sendContactRequest = async (userId: number , contactId: number) => 
     }
 }
 
-export const getUsersByPatterns = async (pattern: string, page: number, size: number) => {
+export const getUsersByPatterns = async (pattern: string, id: string,page: number, size: number) => {
   try {
-      const data = await api.get(`${BACKEND_URL}/users/coincidences?pattern=${pattern}&page=${page}&size=${size}`);
+      const data = await api.get(`${BACKEND_URL}/users/${id}/coincidences?pattern=${pattern}&page=${page}&size=${size}`);
       return await data.data;
   } catch (error) {
     console.error('Error al obtener el id:', error);

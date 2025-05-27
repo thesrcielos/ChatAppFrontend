@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Tabs, Tab, Card, CardBody, Button } from "@heroui/react";
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import {Card, CardContent} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { getContactRequests, acceptContact, deleteContact,
   rejectContactRequest, getContactRequestsSent } from "../api/UserApi";
@@ -20,11 +22,13 @@ interface RequestsModalProps {
 export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
   const [receivedRequests, setReceivedRequests] = useState<ContactRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<ContactRequest[]>([]);
+  const [sentRequestsFetched, setSentRequestsFetched] = useState(false);
   const { userId } = useUser();
 
   useEffect(() => {
-    if (isOpen && receivedRequests.length === 0) {
+    if (isOpen && !sentRequestsFetched) {
       getRecievedContactRequests();
+      setSentRequestsFetched(true);
     }
   }, [isOpen, receivedRequests, sentRequests]);
 
@@ -58,6 +62,15 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
     }
   };
 
+  const handleDeleteRequest = async (id: number) => {
+    try {
+      await deleteContact(id);
+      setSentRequests(sentRequests.filter((request) => request.id !== id.toString()));
+    } catch (error) {
+      console.error("Error al eliminar solicitud", error);
+    }
+  }
+
   if (!isOpen) {
     return null;
   }
@@ -67,27 +80,33 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
       <div className="bg-white p-6 rounded-2xl shadow-xl w-96">
         <h2 className="text-lg font-bold text-gray-800 mb-3 text-center">Solicitudes de Contacto</h2>
 
-        <Tabs aria-label="Solicitudes">
-          <Tab key="received" title="Recibidas 📥">
+        <Tabs defaultValue="Recibidas" aria-label="Solicitudes">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="Recibidas">Recibidas</TabsTrigger>
+            <TabsTrigger value="Enviadas">Enviadas</TabsTrigger>
+          </TabsList>
+          <TabsContent value="Recibidas" aria-label="Solicitudes Recibidas">
             <Card className="bg-gray-50 shadow-sm rounded-lg">
-              <CardBody>
+              <CardContent>
                 {receivedRequests.length > 0 ? (
                   receivedRequests.map((user) => (
                     <div key={user.id} className="flex justify-between items-center p-2 border-b">
                       <div>
-                        <p>{user.name}</p>
-                        <p>{user.email}</p>
+                        <p className="text-left">{user.name}</p>
+                        <p className="text-left">{user.email}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
                           onClick={() => acceptRequest(user.id)}
-                          className="button-ry bg-green-600 hover:bg-green-600 text-white w-10 h-10 aspect-square flex items-center justify-center"
+                          className="button-ry bg-green-600 hover:bg-green-600 text-white w-8 h-8 aspect-square 
+                          flex items-center justify-center cursor-pointer"
                         >
                           <Check className="w-6 h-6" />
                         </Button>
                         <Button
                           onClick={() => rejectRequest(user.id)}
-                          className="button-rx bg-red-600 hover:bg-red-600 text-white w-10 h-10 aspect-square flex items-center justify-center"
+                          className="button-rx bg-red-600 hover:bg-red-600 text-white w-8 h-8 aspect-square 
+                          flex items-center justify-center cursor-pointer"
                         >
                           <X className="w-6 h-6" />
                         </Button>
@@ -97,13 +116,13 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
                 ) : (
                   <p className="text-gray-500 text-center">No hay solicitudes pendientes.</p>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
-          </Tab>
+          </TabsContent>
 
-          <Tab key="sent" title="Enviadas 📤">
+          <TabsContent value="Enviadas" arial-label="Solicitudes Enviadas">
             <Card className="bg-gray-50 shadow-sm rounded-lg">
-              <CardBody>
+              <CardContent>
                 {sentRequests.length > 0 ? (
                   sentRequests.map((user) => (
                     <div key={user.id} className="flex justify-between items-center p-2 border-b">
@@ -113,8 +132,9 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => deleteContact(Number(user.id))}
-                        className="button-rx bg-red-600 hover:bg-red-600 text-white w-10 h-10 aspect-square flex items-center justify-center"
+                        onClick={() => handleDeleteRequest(Number(user.id))}
+                        className="button-rx bg-red-600 hover:bg-red-600 text-white aspect-square flex 
+                        items-center justify-center cursor-pointer w-8 h-8"
                       >
                         <X className="w-6 h-6" />
                       </Button>
@@ -124,17 +144,18 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
                 ) : (
                   <p className="text-gray-500 text-center">No has enviado solicitudes.</p>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
-          </Tab>
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end mt-4">
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg cursor-pointer"
             onClick={() => {
               onClose();
-              setReceivedRequests([]); 
+              setSentRequestsFetched(false);
+              setReceivedRequests([]);
             }}
           >
             Cerrar

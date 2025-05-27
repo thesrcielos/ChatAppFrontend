@@ -1,5 +1,5 @@
 import "./Chat.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Search } from "lucide-react";
 import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
@@ -11,7 +11,6 @@ import AddContactModal from "./AddContactModal";
 import RequestsModal from "./RequestModal";
 import CreateGroupModal from "./CreateGroupModal";
 import ListChatMessages from "./ListChatMessages";
-import { Chat, Message } from "@/types/types";
 import UserMenu from "./UserMenu";
 import ChatListItem from "./ChatListItem";
 import { useChatStore } from "@/store/chatStore";
@@ -19,13 +18,14 @@ import { useChatStore } from "@/store/chatStore";
 export default function ChatApp() {
   const contacts = useChatStore((state) => state.chats);
   const setContacts = useChatStore((state) => state.setChats);
+  const selectedChat = useChatStore((state) => state.selectedChat);
+  const setSelectedChat = useChatStore((state) => state.setSelectedChat);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const {userId, setUserId} = useUser();
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
-  const [contact, setContact] = useState<Chat | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewGroupOpen, setIsNewGroupOpen] = useState(false);
-  const [lastMessages, setLastMessages] = useState({} as Record<string, Message>);
+  const [contactsFetched, setContactsFetched] = useState(false);
 
   useEffect( () => {
       const load = async ()=>{
@@ -33,18 +33,23 @@ export default function ChatApp() {
         if (!!token) {
           let payload : any = jwtDecode(token);
           setUserId(payload.id);
-          console.log(payload.id);
+          console.log("User ID from token:", payload.id);
           await getChats(payload.id);
         }
       }
     load();
   }, []);
 
-  const getChats = async (id: number) => {
+  const getChats = useCallback(async (id: number) => {
+    if (contactsFetched) return;
+
     const data = await getUserChats(id, 0, 10);
     const contacts = data.values;
+    console.log("Contacts fetched:", contacts);
     setContacts(contacts);
-  }
+    setContactsFetched(true);
+  }, [contactsFetched]);
+
   
   const createGroup = async (name: string, members: number[]) => {
     const result =  await createGroupChat(name, Number(userId), members);
@@ -85,18 +90,16 @@ export default function ChatApp() {
         <CardContent className="relative w-[100%] p-0 overflow-y-auto">
           {contacts?.length > 0 ? (
             contacts.map((chat) => (
-                <ChatListItem key={chat.id} onClick={()=>setContact(chat)}
-                  lastMessage={lastMessages[chat.id]} 
-                  isActive={chat.id === contact?.id} chat={chat} />
+                <ChatListItem key={chat.id} onClick={()=>setSelectedChat(chat.id)}
+                  isActive={chat.id === selectedChat} chat={chat} />
             ))
           ) : (
             <p className="text-gray-500 text-center">No hay chats disponibles</p>
           )}
         </CardContent>
     </Card>
-    <ListChatMessages selectedContact={contact}
+    <ListChatMessages 
       contacts={contacts}  
-      setLastMessages={setLastMessages}
       />
     <CreateGroupModal isOpen={isNewGroupOpen} onClose={setIsNewGroupOpen} onCreateGroup={createGroup}/>
     <AddContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
