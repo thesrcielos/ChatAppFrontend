@@ -1,4 +1,3 @@
-// src/components/Perfil.tsx
 import { useEffect, useState } from "react";
 import {
   getUserInfo,
@@ -6,6 +5,7 @@ import {
   deleteProfilePicture,
 } from "@/api/UserApi";
 import { useUser } from "../services/UserContext";
+import { MessageSquareText } from 'lucide-react';
 
 type PerfilProps = {
   onClose: () => void;
@@ -61,7 +61,26 @@ const Perfil = ({ onClose }: PerfilProps) => {
     };
     loadUser();
   }, [userId]);
-
+ const getPicture = (): React.ReactNode => {
+  if (user?.picture) {
+    return (
+      <img
+        src={user.picture}
+        alt="Foto de perfil"
+        className="w-24 h-24 rounded-full mb-4 cursor-pointer object-cover"
+        onClick={handleImageClick}
+      />
+    );
+  }
+  return (
+    <div
+      className="w-24 h-24 rounded-full mb-4 flex items-center justify-center bg-gray-300 cursor-pointer"
+      onClick={handleImageClick}
+    >
+      <MessageSquareText className="text-white" size={24} />
+    </div>
+  );
+};
   const handleImageClick = () => {
     setShowOptions((v) => !v);
   };
@@ -135,14 +154,7 @@ const Perfil = ({ onClose }: PerfilProps) => {
 
       {/* Contenido */}
       <div className="flex flex-col items-center">
-        {/* Imagen clicable */}
-        <img
-          src={user.picture || "/default-avatar.png"}
-          alt="Foto de perfil"
-          className="w-24 h-24 rounded-full mb-4 cursor-pointer object-cover"
-          onClick={handleImageClick}
-        />
-
+        {getPicture()}
         <h3 className="text-xl font-medium">{user.name}</h3>
         {user.email && (
           <p className="text-gray-600 mb-2">{user.email}</p>

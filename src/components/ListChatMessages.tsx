@@ -14,9 +14,9 @@ const ListChatMessages = ({selectedContact, contacts, setLastMessages}: ListChat
         contacts.map((contact) => {
             return <ChatMessages 
                 key={contact.id}
-                contact={contact}
+                chat={contact}
                 setChatLastMessage={setLastMessages}
-                selectedContact={selectedContact}
+                selectedChat={selectedContact}
             />
         })
     )

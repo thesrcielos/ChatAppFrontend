@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/services/UserContext";
+import { MessageSquareText } from "lucide-react";
 import { getUsersChatInfo, getChatMessages } from "@/api/ChatApi";
 import { Chat, Message } from "@/types/types";
 import { Dispatch, SetStateAction } from "react";
@@ -10,40 +11,42 @@ import ChatFooter from "./ChatFooter";
 import { markSeenMessages } from "@/services/MessageService";
 
 interface ChatMessagesProps {
-    selectedContact: Chat | null;
-    contact: Chat;
+    selectedChat: Chat | null;
+    chat: Chat;
     setChatLastMessage: Dispatch<SetStateAction<Record<string, Message>>>;
 }
 
-const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
+const ChatMessages = ({selectedChat, chat} : ChatMessagesProps) => {
     const {userId} = useUser();
     const [newMessage, setNewMessage] = useState("");
     const [message, setMessage] = useState<Message | null>(null);
-    const messages = useChatStore((state) => state.messages[String(contact.id)]);
+    const messages = useChatStore((state) => state.messages[String(chat.id)]);
     const addMessage = useChatStore((state) => state.addMessage);
     const addMessages = useChatStore((state) => state.addMessages);
     const setMessages = useChatStore((state) => state.setMessages);
     const setContacts = useChatStore((state) => state.setContacts);
     const handleSeenMessage = useChatStore((state) => state.handleSeenMessage);
+    const contacts = useChatStore((state) => state.contacts);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [dataFetched, setDataFetched] = useState(false);
-    const isOpen = selectedContact?.id === contact.id;
-
+    const isOpen = selectedChat?.id === chat.id;
     useEffect(() => {
         const getMessages = async () => {
-           if (!contact.id) return;
-          const users = await getUsersChatInfo(contact.id);
+           if (!chat.id) return;
+          const users = await getUsersChatInfo(chat.id);
+          console.log(users);
           setContacts(users);
           let date = new Date();
-          const messages = await getChatMessages(contact.id, date, 1);
-          setMessages(String(contact.id), messages.values);
+          const messages = await getChatMessages(chat.id, date, 1);
+          setMessages(String(chat.id), messages.values);
         }
         getMessages();
-    }, [contact.id]);
+    }, [chat.id]);
+    
 
     useEffect(() => {
         if (!message) return;
-        addMessage(String(contact.id), message);
+        addMessage(String(chat.id), message);
     }, [message]);
     
     useEffect(() => {
@@ -60,7 +63,7 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
     let seenTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const markMessagesAsSeen = () => {
-    if (!contact.id || contact.unseenMessages <= 0 || !isOpen) return;
+    if (!chat.id || chat.unseenMessages <= 0 || !isOpen) return;
 
     if (seenTimeout) {
       clearTimeout(seenTimeout);
@@ -72,9 +75,9 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
       const messageId = lastMessage.messageId;
       if (!messageId || !userId) return;
 
-      const conversationId = contact.id;
+      const conversationId = chat.id;
       markSeenMessages(String(conversationId), messageId, userId);
-      handleSeenMessage(String(contact.id));
+      handleSeenMessage(String(chat.id));
       }, 2000);
   };
 
@@ -91,28 +94,59 @@ const ChatMessages = ({selectedContact, contact} : ChatMessagesProps) => {
       }
       const date = messages.length > 0 ? new Date(messages[messages.length - 1].sentAt) : new Date();
       const PAGE_SIZE = 49;
-      const data = await getChatMessages(contact.id, date, PAGE_SIZE);
+      const data = await getChatMessages(chat.id, date, PAGE_SIZE);
       console.log("Mensajes obtenidos:", data);
-      addMessages(String(contact.id), data.values);
+      addMessages(String(chat.id), data.values);
       setDataFetched(true);
+
     }
-
     const getChatName = () => {
-      if (contact.isGroup) {
-        return contact.group.name;
+      if (chat.isGroup) {
+        return chat.group.name;
       }
-      return contact.contact.name;
+      return chat.contact.name;
     };
-
+  
+    const getPicture = (): React.ReactNode => {
+  if (chat.isGroup && chat.group.image) {
+    return (
+      <img
+        src={chat.group.image}
+        alt="Grupo"
+        className="w-8 h-8 rounded-full object-cover"
+      />
+    );
+  } else if (!chat.isGroup) {
+    const user = contacts[chat.contact.contact];
+    if (user?.picture) {
+      return (
+        <img
+          src={user.picture}
+          alt={user.name}
+          className="w-8 h-8 rounded-full object-cover"
+        />
+      );
+    }
+  }
+   return (
+    <div className="bg-blue-500 p-2 rounded-full">
+      <MessageSquareText className="text-white" size={24} />
+    </div>
+  );
+};
     if (!isOpen) {
       return null;
     } 
+    
     return (
       <main className="flex-1 flex flex-col w-3/5">
-        <ChatHeader chatName={getChatName()} />
-        <ChatBody messages={messages} userId={userId} chat={contact} />
+      <ChatHeader 
+  chatName={getChatName()} 
+  avatar={getPicture()} 
+/> 
+        <ChatBody messages={messages} userId={userId} chat={chat} />
         <ChatFooter
-          chat={contact}
+          chat={chat}
           userId={userId}
           newMessage={newMessage}
           setNewMessage={setNewMessage}

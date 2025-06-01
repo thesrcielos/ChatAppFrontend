@@ -1,3 +1,4 @@
+import { StringifyOptions } from "querystring";
 import axiosInstance from "./Api.js";
 
 
@@ -137,20 +138,20 @@ export const uploadProfilePicture = async (
   userId: number,
   file: File
 ): Promise<boolean> => {
-  // 1) Construyes el form data
+  
   const formData = new FormData();
   formData.append("file", file);
-  // IMPORTANT: userId es un valor primitivo, pero FormData lo convierte a texto
+  
   formData.append("userId", String(userId));
 
   try {
     const response = await fetch(`${BACKEND_URL}/files/profile-picture`, {
       method: "POST",
       headers: {
-        // NO pongas 'Content-Type' a mano; el browser lo asigna:
+        
         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
       },
-      body: formData, // ✅ aquí va el FormData
+      body: formData, 
     });
 
     return response.ok;
@@ -167,12 +168,10 @@ export const deleteProfilePicture = async (userId: number): Promise<void> => {
     await fetch(`${BACKEND_URL}/files/${userId}/profile-picture`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`, // si tu backend requiere auth
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (error) {
     console.error("Error al eliminar la imagen de perfil:", error);
   }
 };
-
-

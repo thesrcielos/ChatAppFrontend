@@ -3,12 +3,14 @@ export interface Contact {
     contact: number;
     name: string;
     email: string;
+    picture: string;
     createdAt: Date;
 }
 
 export interface Group {
     name: string;
     groupUsers: number[];
+    image: string;
 }
 
 type FileType = "AUDIO" | undefined
@@ -35,8 +37,8 @@ export interface Chat {
     id: number;
     contact: Contact;
     isGroup: boolean;
-    group: Group;
-    image?: string;
+    group: Group;    
+    image?:string;
     unseenMessages: number;
 }
 
