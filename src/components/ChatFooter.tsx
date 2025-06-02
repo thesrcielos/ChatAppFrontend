@@ -46,7 +46,7 @@ const ChatFooter = ({
 
     addMessage(String(chat.id), message);
     sendMessageWS({
-        content: newMessage,
+        message: newMessage,
         conversationId: chat.id,
         contactId: id,
         sentAt: toLocalISOString(new Date()),

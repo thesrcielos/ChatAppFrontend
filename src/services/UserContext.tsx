@@ -8,6 +8,7 @@ import React, {
   SetStateAction,
 } from "react";
 import { disconnectWebSocket } from "./MessageService";
+import Cookies from 'js-cookie';
 
 interface UserContextType {
   userId: string | null;
@@ -27,19 +28,19 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!localStorage.getItem("token")
+    !!Cookies.get('token')
   );
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "token") {
-        localStorage.getItem("token") ? login() : logout();
+        !!Cookies.get('token') ? login() : logout();
       }
     };
 
     const handleTokenChanged = () => {
       console.log("Token changed event triggered");
-      localStorage.getItem("token") ? login() : logout();
+      !!Cookies.get('token') ? login() : logout();
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -52,7 +53,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   }, []);
 
   const checkAuth = () => {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get('token');
     return !!token;
   };
 
@@ -73,7 +74,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   );
 };
 
-// 5. Hook de acceso
 export const useUser = (): UserContextType => {
   const context = useContext(UserContext);
   if (!context) {
@@ -82,13 +82,15 @@ export const useUser = (): UserContextType => {
   return context;
 };
 
-// 6. Métodos auxiliares
 export const setToken = (token: string) => {
-  localStorage.setItem("token", token);
+    Cookies.set('token', token, {
+    path: '/',
+    expires: 1 / 24, 
+  });
   window.dispatchEvent(new Event("token-changed"));
 };
 
 export const removeToken = () => {
-  localStorage.removeItem("token");
+  Cookies.remove('token', { path: '/' });
   window.dispatchEvent(new Event("token-changed"));
 };

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Message, Contact, Chat } from '@/types/types';
+import { Message, Contact, Chat, MessageModification } from '@/types/types';
 
 type ChatState = {
   messages: Record<string, Message[]>; 
@@ -18,6 +18,9 @@ type ChatState = {
   moveChatToTopId: (chatId: String) => void;
   handleNewMessage: (chatId: string) => void;
   handleSeenMessage: (chatId: string) => void;
+  deleteMessage: (chatId: string, messageId: string) => void;
+  editMessage: (chatId: string, messageId: string, newMessage: string) => void;
+  handleMessageModification: (chatId: string, message: MessageModification) => void;
   setSelectedChat: (chatId: number | null) => void;
 };
 
@@ -124,6 +127,56 @@ export const useChatStore = create<ChatState>((set) => ({
       });
       return {
         chats: newChats,
+      };
+    }),
+  handleMessageModification: (chatId, message) =>
+    set((state) => {
+      let newMessages: Message[] = [];
+      if (message.type === 'EDIT') {
+        newMessages = state.messages[chatId]?.map((msg) => {
+        if (msg.messageId !== message.messageId) {
+          return msg;
+        }
+        return {
+          ...msg,
+          message: message.message,
+        };
+        
+        }) || [];
+      }else if (message.type === 'DELETE') {
+        newMessages = state.messages[chatId]?.filter((msg) => msg.messageId !== message.messageId) || [];
+      }
+
+      return {
+        messages: {
+          ...state.messages,
+          [chatId]: newMessages,
+        },
+      };
+    }),
+  deleteMessage: (chatId, messageId) =>
+    set((state) => {
+      const newMessages = state.messages[chatId]?.filter((msg) => msg.messageId !== messageId) || [];
+      return {
+        messages: {
+          ...state.messages,
+          [chatId]: newMessages,
+        },
+      };
+    }),
+  editMessage: (chatId, messageId, newMessage) => 
+    set((state) => {
+      const newMessages = state.messages[chatId]?.map((msg) => {
+        if (msg.messageId === messageId) {
+          return { ...msg, message: newMessage };
+        }
+        return msg;
+      }) || [];
+      return {
+        messages: {
+          ...state.messages,
+          [chatId]: newMessages,
+        },
       };
     }),
   setSelectedChat: (chatId) =>
