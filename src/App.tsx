@@ -3,21 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import './App.css'
 import AppRoutes from './routes/AppRoutes';
-import { HeroUIProvider } from "@heroui/react";
 import { UserProvider } from './services/UserContext';
 
 function App() {
   return (
-      <HeroUIProvider>
-        <UserProvider>
-          <Router>
-            <Routes>          
-                <Route path='/*' element={<AppRoutes/>}/>
-            </Routes>
-            <ForceRedirect/>
-          </Router>
-        </UserProvider>
-      </HeroUIProvider>
+      <UserProvider>
+        <Router>
+          <Routes>          
+              <Route path='/*' element={<AppRoutes/>}/>
+          </Routes>
+          <ForceRedirect/>
+        </Router>
+      </UserProvider>
   );
 }
 

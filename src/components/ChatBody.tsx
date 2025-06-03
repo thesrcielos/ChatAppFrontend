@@ -1,8 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Chat, Message } from "@/types/types";
 import ChatMessageItem from "./ChatMessageItem";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import MessageOptions from "./MessageOptions";
 
 interface ChatBodyProps {
   messages: Message[];
@@ -12,6 +13,8 @@ interface ChatBodyProps {
 
 const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [messageHover, setMessageHover] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
   let lastDate: String = "";
 
   useEffect(() => {
@@ -34,12 +37,17 @@ const ChatBody = ({ messages, userId, chat }: ChatBodyProps) => {
           </div>
         )}
         <div
-          className={`p-2 text-left rounded-lg max-w-xs ${
+          className={`relative p-1.5 text-left rounded-lg max-w-xs ${
             Number(msg.userId) === Number(userId)
               ? "ml-auto bg-blue-500 text-white"
               : "bg-gray-200 text-black"
           }`}
+          onMouseEnter={() => setMessageHover(msg.messageId)}
+          onMouseLeave={() => {setMessageHover(null); setMenuOpen(null);}}
         >
+          {messageHover === msg.messageId && (
+            <MessageOptions message={msg}/>
+          )}
           <ChatMessageItem message={msg} chat={chat}/>
         </div>
         </div>

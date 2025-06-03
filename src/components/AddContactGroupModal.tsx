@@ -4,14 +4,20 @@ import { getUserChatsByPatterns } from "../api/ChatApi";
 import { useUser } from '../services/UserContext';
 import useDebounce from '../services/useDebounce';
 import { Contact, Chat } from '../types/types';
+import { Dialog, DialogTrigger,DialogContent, DialogHeader
+      ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
+import { Button } from './ui/button';
+import { Plus } from 'lucide-react';
+import { Input } from './ui/input';
+import { Checkbox } from './ui/checkbox';
+import { toast } from "sonner";
 
 interface AddContactGroupModalProps {
-  onClose: () => void;
-  onAddContact: (contacts: Contact[]) => void;
+  onAddContacts: (contact: Contact[]) => void;
   selected: () => Contact[];
 }
 
-const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGroupModalProps) => {
+const AddContactGroupModal = ({onAddContacts, selected }: AddContactGroupModalProps) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [availableContacts, setAvailableContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
@@ -25,29 +31,35 @@ const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGro
     return Array.from(map.values());
   };
 
-  useEffect(() => {
-    const getData = async () => {
+   const fetchInitialContacts = async () => {
+    if (!userId) return;
+    try {
       const contacts = await getUserContacts(Number(userId), 0, 10);
       const currentSelected = selected();
       const all = contacts?.values ?? [];
       setAvailableContacts(all);
       setSelectedContacts(currentSelected);
       setFilteredContacts(mergeUniqueContacts(currentSelected, all));
-    };
-    getData();
-  }, []);
+    } catch (error) {
+      console.error('Error al obtener contactos:', error);
+    }
+  };
+
+  const fetchFilteredContacts = async () => {
+    if (!userId) return;
+    if (!debouncedQuery.trim()) {
+      setFilteredContacts(mergeUniqueContacts(selectedContacts, availableContacts));
+      return;
+    }
+    const chats = await getUserChatsByPatterns(Number(userId), debouncedQuery, 0, 5);
+    const filtered = chats?.values.map((c: Chat) => c.contact) ?? [];
+    setFilteredContacts(filtered);
+    
+  }
+
 
   useEffect(() => {
-    const getData = async () => {
-      if (!debouncedQuery.trim()) {
-        setFilteredContacts(mergeUniqueContacts(selectedContacts, availableContacts));
-        return;
-      }
-      const chats = await getUserChatsByPatterns(Number(userId), debouncedQuery, 0, 5);
-      const filtered = chats?.values.map((c: Chat) => c.contact) ?? [];
-      setFilteredContacts(filtered);
-    };
-    getData();
+    fetchFilteredContacts();
   }, [debouncedQuery]);
 
   const toggleContactSelection = (contact: Contact) => {
@@ -58,65 +70,39 @@ const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGro
     );
   };
 
-  const handleAddContacts = () => {
+  const handleAddContacts = (e: React.MouseEvent) => {
     if (selectedContacts.length === 0) {
-      alert('Por favor, selecciona al menos un contacto');
+      e.preventDefault();
+      toast.error('Por favor, selecciona al menos un contacto');
       return;
     }
-    onAddContact(selectedContacts);
+    onAddContacts(selectedContacts);
     setSelectedContacts([]);
     setSearchQuery('');
-    onClose();
   };
 
   const close = (e: React.MouseEvent) => {
-    e.stopPropagation();
     setSelectedContacts([]);
     setSearchQuery('');
-    onClose();
   };
 
   return (
-    <div
-      onClick={close}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md p-6"
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Añadir contactos</h2>
-          <button
-            onClick={close}
-            aria-label="Cerrar modal"
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <Dialog onOpenChange={fetchInitialContacts}>
+        <DialogTrigger>
+          <Plus className="w-5 h-5 cursor-pointer" />
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Añadir Miembros</DialogTitle>
+          </DialogHeader>
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Buscar contactos..."
+          />
 
-        {/* Input de búsqueda */}
-        <div className="mb-4">
-          <div className="relative w-full inline-flex">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Buscar contactos..."
-            />
-          </div>
-        </div>
-
-        {/* Lista de contactos */}
         <div className="mb-4 max-h-64 overflow-y-auto">
           {filteredContacts.length > 0 ? (
             <div className="divide-y divide-gray-200">
@@ -133,10 +119,8 @@ const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGro
                     <div className="text-sm text-gray-500">{contact.email}</div>
                   </div>
                   <div className="ml-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={selectedContacts.some(c => c.id === contact.id)}
-                      readOnly
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                   </div>
@@ -149,8 +133,7 @@ const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGro
             </div>
           )}
         </div>
-
-        {/* Barra de estado y botones */}
+        
         <div className="border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-4">
             <div className="text-sm text-gray-500">
@@ -158,26 +141,23 @@ const AddContactGroupModal = ({ onClose, onAddContact, selected }: AddContactGro
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={close}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 mr-2 hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleAddContacts}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-              disabled={selectedContacts.length === 0}
-            >
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary" 
+            className="cursor-pointer" onClick={handleAddContacts}>
               Añadir
-            </button>
-          </div>
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary" 
+            className="cursor-pointer" onClick={close}>
+              Cancelar
+            </Button>
+          </DialogClose>
+        </DialogFooter>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

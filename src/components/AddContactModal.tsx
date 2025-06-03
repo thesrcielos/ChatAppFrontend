@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { X, Search } from "lucide-react";
+import React, { useState } from "react";
+import { Search } from "lucide-react";
 import { getUsersByPatterns, sendContactRequest } from "../api/UserApi";
 import { useUser } from "@/services/UserContext";
 import { ContactSearch } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check } from "lucide-react";
+import { Dialog, DialogTrigger,DialogContent, DialogHeader
+      ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
 
 interface AddContactModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  children: React.ReactNode;
 }
-
-const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
+const AddContactModal = ({children}: AddContactModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState<ContactSearch[]>([]);
   const { userId } = useUser();
@@ -30,18 +30,16 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
     await sendContactRequest(Number(userId), id);
   };
 
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Añadir Contacto</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
+    <Dialog>
+      <DialogTrigger>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Añadir Contacto</DialogTitle>
+        </DialogHeader>
         <div className="flex items-center gap-2 mb-4">
           <Input
             type="text"
@@ -49,7 +47,8 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button onClick={handleSearch} className="cursor-pointer" variant="default">
+          <Button onClick={handleSearch} className="cursor-pointer" 
+          variant="default" disabled={searchTerm.trim() === ""}>
             <Search className="w-5 h-5" />
           </Button>
         </div>
@@ -86,8 +85,15 @@ const AddContactModal = ({ isOpen, onClose }: AddContactModalProps) => {
             </p>
           )}
         </div>
-      </div>
-    </div>
+         <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary" onClick={() => {setSearchTerm(""); setSearchResult([])}}>
+              Cerrar
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+        </DialogContent>
+      </Dialog>
   );
 };
 

@@ -23,7 +23,7 @@ export interface Message {
 }
 
 export interface MessageRequest {
-    content?: string;
+    message?: string;
     conversationId?: number;
     contactId: number;
     sentAt: string;
@@ -31,6 +31,12 @@ export interface MessageRequest {
     fileUrl?: string;
 }
 
+export interface MessageModification {
+    messageId: string;
+    conversationId: number;
+    message?: string;
+    type: "EDIT" | "DELETE";
+}
 export interface Chat {
     id: number;
     contact: Contact;

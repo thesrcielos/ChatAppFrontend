@@ -6,10 +6,9 @@ interface MessageInputProps {
     sendMessage: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   }
 const MessageInput = ({text, setText, sendMessage} : MessageInputProps) => {
-    const textareaRef = useRef(null);
-  
-    // Función para manejar cambios en el texto
-    const handleChange = (e) => {
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const nuevoTexto = e.target.value;
       setText(nuevoTexto);
     };

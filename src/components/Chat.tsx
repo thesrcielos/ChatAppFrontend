@@ -4,32 +4,27 @@ import { Search } from "lucide-react";
 import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
 import { getUserChats, getUserChatsByPatterns} from "../api/ChatApi";
-import {createGroupChat} from "../api/GroupApi";
 import { useUser } from "@/services/UserContext";
 import {jwtDecode} from "jwt-decode";
-import AddContactModal from "./AddContactModal";
-import RequestsModal from "./RequestModal";
-import CreateGroupModal from "./CreateGroupModal";
 import ListChatMessages from "./ListChatMessages";
 import UserMenu from "./UserMenu";
 import ChatListItem from "./ChatListItem";
 import { useChatStore } from "@/store/chatStore";
+import {Toaster} from "./ui/sonner";
+import Cookies from "js-cookie";
 
 export default function ChatApp() {
   const contacts = useChatStore((state) => state.chats);
   const setContacts = useChatStore((state) => state.setChats);
   const selectedChat = useChatStore((state) => state.selectedChat);
   const setSelectedChat = useChatStore((state) => state.setSelectedChat);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const {userId, setUserId} = useUser();
-  const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isNewGroupOpen, setIsNewGroupOpen] = useState(false);
   const [contactsFetched, setContactsFetched] = useState(false);
 
   useEffect( () => {
       const load = async ()=>{
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("token");
         if (!!token) {
           let payload : any = jwtDecode(token);
           setUserId(payload.id);
@@ -50,15 +45,6 @@ export default function ChatApp() {
     setContactsFetched(true);
   }, [contactsFetched]);
 
-  
-  const createGroup = async (name: string, members: number[]) => {
-    const result =  await createGroupChat(name, Number(userId), members);
-    if(!result) {
-      alert("Group not created");
-      return;
-    }
-    setContacts([result, ...contacts])
-  }
   const handleSearchTerm = async (searchTerm: string) => {
     setSearchTerm(searchTerm);
     const data = await getUserChatsByPatterns(Number(userId), searchTerm, 0, 10);
@@ -71,9 +57,7 @@ export default function ChatApp() {
       <CardHeader className="flex flex-col gap-4 justify-start items-start">
         <div className="w-full flex justify-between items-center gap-3">
           <h2 className="text-left font-bold text-lg flex-grow">Chats</h2>
-          <UserMenu onOpenRequests={() => setIsRequestsModalOpen(true)}
-            onAddContact={() => setIsModalOpen(true)}
-            onCreateGroup={() => setIsNewGroupOpen(true)}/> 
+          <UserMenu/> 
         </div>
 
         <div className="search-contacts inline-flex items-center w-full border rounded-lg px-3 py-2">
@@ -101,9 +85,7 @@ export default function ChatApp() {
     <ListChatMessages 
       contacts={contacts}  
       />
-    <CreateGroupModal isOpen={isNewGroupOpen} onClose={setIsNewGroupOpen} onCreateGroup={createGroup}/>
-    <AddContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    <RequestsModal isOpen={isRequestsModalOpen} onClose={() => setIsRequestsModalOpen(false)} />
+    <Toaster />
   </div>
   );
 }

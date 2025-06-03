@@ -1,38 +1,53 @@
 import React, { useState } from 'react';
 import AddContactGroupModal from './AddContactGroupModal';
 import { Contact } from '@/types/types';
+import { Dialog, DialogTrigger,DialogContent, DialogHeader
+      ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
+import { Button } from './ui/button';
+import {createGroupChat} from "../api/GroupApi";
+import { useChatStore } from '@/store/chatStore';
+import { useUser } from '../services/UserContext';
+import { toast } from "sonner";
 
 interface CreateChatGroupModalProps {
-  isOpen: boolean;
-  onClose: (isOpen: boolean) => void;
-  onCreateGroup: (groupName: string, participants: number[]) => void;
+  children: React.ReactNode;
 }
 
-const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGroupModalProps) => {
+const CreateChatGroupModal = ({ children }: CreateChatGroupModalProps) => {
   const [groupName, setGroupName] = useState('');
   const [description, setDescription] = useState('');
   const [participants, setParticipants] = useState<Contact[]>([]);
-  const [isSelectingContacts, setIsSelectingContacts] = useState(false);
+  const addChat = useChatStore((state) => state.addChat);
+  const { userId } = useUser();
 
-  if (!isOpen) return null;
-  
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     
     if (!groupName.trim()) {
-      alert('Por favor ingresa un nombre para el grupo');
+      toast.info('Por favor ingresa un nombre para el grupo');
+      return;
+    }
+    if (participants.length == 0) {
+      toast.info('Debes agregar al menos 1 participante al grupo');
       return;
     }
   
     const userList = participants.map((user) => user.contact);
-    onCreateGroup(groupName, userList)
+    createGroup(groupName, userList)
     setGroupName('');
     setDescription('');
     setParticipants([]);
-
-    onClose(false);
   };
   
+  const createGroup = async (name: string, members: number[]) => {
+      const result =  await createGroupChat(name, Number(userId), members);
+      if(!result) {
+        toast.info("Error al crear el grupo, intenta nuevamente");
+        return;
+      }
+      addChat(result);
+    }
+
   const getParticipants = () => {
     return participants;
   }
@@ -48,27 +63,19 @@ const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGrou
     setGroupName('');
     setDescription('');
     setParticipants([]);
-    onClose(false);
   }
 
   return (
-    <div onClick={close}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 z-60">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Crear nuevo grupo de chat</h2>
-          <button 
-            onClick={close}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <Dialog>
+      <DialogTrigger className="w-full">
+          {children}
+        </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Crear Grupo</DialogTitle>
+        </DialogHeader>
         
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className="mb-2">
             <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-1">
               Nombre del grupo 
@@ -103,14 +110,10 @@ const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGrou
               <label className="block text-sm font-medium text-gray-700">
                 Participantes
               </label>
-              <button
-                type="button"
-                style={{padding: 0}}
-                onClick={() => setIsSelectingContacts(true)}
-                className="bg-blue-500 text-white h-6 w-6 rounded-md hover:bg-blue-600"
-              >
-                +
-              </button>
+              <AddContactGroupModal 
+                selected={getParticipants}
+                onAddContacts={addParticipants}
+              />
             </div>
             
             
@@ -139,30 +142,21 @@ const CreateChatGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateChatGrou
               </div>
             )}
           </div>
-          
-          <div className="flex justify-end mt-6">
-            <button
-              type="button"
-              onClick={close}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 mr-2 hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Crear grupo
-            </button>
-          </div>
         </form>
-      </div>
-      {isSelectingContacts && (<AddContactGroupModal 
-        onClose={() => setIsSelectingContacts(false)}
-        selected={getParticipants}
-        onAddContact={addParticipants}
-      />)}
-    </div>
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button type="button" className='cursor-pointer' onClick={handleSubmit}>
+              Crear Grupo
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="button" className='cursor-pointer' onClick={close}>
+              Cancelar
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

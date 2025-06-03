@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { disconnectWebSocket } from '../services/MessageService'; 
 import { removeToken } from "../services/UserContext";
+import Cookies from 'js-cookie';
 
 const axiosInstance = () => { 
   const instance = axios.create({
@@ -12,7 +12,7 @@ const axiosInstance = () => {
 
   instance.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem('token');
+      const token = Cookies.get('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       } 

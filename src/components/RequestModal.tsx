@@ -7,6 +7,8 @@ import { getContactRequests, acceptContact, deleteContact,
   rejectContactRequest, getContactRequestsSent } from "../api/UserApi";
 import "./RequestModal.css";
 import { useUser } from "../services/UserContext";
+import { Dialog, DialogTrigger,DialogContent, DialogHeader
+      ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
 
 interface ContactRequest {
   id: string;
@@ -15,22 +17,21 @@ interface ContactRequest {
 }
 
 interface RequestsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  children: React.ReactNode;
 }
 
-export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
+export default function RequestsModal({ children}: RequestsModalProps) {
   const [receivedRequests, setReceivedRequests] = useState<ContactRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<ContactRequest[]>([]);
   const [sentRequestsFetched, setSentRequestsFetched] = useState(false);
   const { userId } = useUser();
 
   useEffect(() => {
-    if (isOpen && !sentRequestsFetched) {
+    if (!sentRequestsFetched) {
       getRecievedContactRequests();
       setSentRequestsFetched(true);
     }
-  }, [isOpen, receivedRequests, sentRequests]);
+  }, [receivedRequests, sentRequests]);
 
   const getRecievedContactRequests = async () => {
     try {
@@ -71,15 +72,15 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
     }
   }
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-96">
-        <h2 className="text-lg font-bold text-gray-800 mb-3 text-center">Solicitudes de Contacto</h2>
-
+    <Dialog>
+       <DialogTrigger className="w-full">
+            {children}
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Solicitudes de Contacto</DialogTitle>
+        </DialogHeader>
         <Tabs defaultValue="Recibidas" aria-label="Solicitudes">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="Recibidas">Recibidas</TabsTrigger>
@@ -148,20 +149,19 @@ export default function RequestsModal({ isOpen, onClose }: RequestsModalProps) {
             </Card>
           </TabsContent>
         </Tabs>
-
-        <div className="flex justify-end mt-4">
-          <Button
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg cursor-pointer"
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg cursor-pointer"
             onClick={() => {
-              onClose();
               setSentRequestsFetched(false);
               setReceivedRequests([]);
             }}
           >
             Cerrar
-          </Button>
-        </div>
-      </div>
-    </div>
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

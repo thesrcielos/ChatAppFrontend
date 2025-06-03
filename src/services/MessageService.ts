@@ -1,13 +1,14 @@
 import { Client, IMessage, StompHeaders } from "@stomp/stompjs";
 import { useChatStore } from "@/store/chatStore";
+import Cookies from "js-cookie";
 
-let token: string | null;
+let token: string | undefined;
 const ws_uri: string = import.meta.env.VITE_WEBSOCKET_URI;
 
 let stompClient: Client | null;
 
 export const connectWebSocket = (): void => {
-  token = localStorage.getItem("token");
+  token = Cookies.get('token');
   if(stompClient) {
     return;
   }
@@ -29,6 +30,7 @@ export const connectWebSocket = (): void => {
         useChatStore.getState().moveChatToTopId(conversationId);
       });
       subscribeToNewChats();
+      subscribeToMessageModifications();
     },
     onStompError: (frame) => {
       console.error("Error en STOMP:", frame.headers["message"]);
@@ -41,6 +43,19 @@ export const connectWebSocket = (): void => {
 const subscribeToNewChats = (): void => {
   if (stompClient && stompClient.connected) {
     stompClient.subscribe("/user/topic/chat", (message: IMessage) => {
+      const data = JSON.parse(message.body);
+      useChatStore.getState().updateChat(data);
+      useChatStore.getState().addContact(data.contact);
+      useChatStore.getState().setSelectedChat(data.id);
+    });
+  } else {
+    console.error("No se pudo suscribir a nuevos chats, WebSocket no conectado");
+  }
+}
+
+const subscribeToMessageModifications = (): void => {
+  if (stompClient && stompClient.connected) {
+    stompClient.subscribe("/user/topic/message-modification", (message: IMessage) => {
       const data = JSON.parse(message.body);
       useChatStore.getState().updateChat(data);
       useChatStore.getState().addContact(data.contact);
@@ -83,6 +98,39 @@ export const markSeenMessages = (
     stompClient.publish({
       destination: "/app/seen",
       body: JSON.stringify({ chatId: conversationId, messageId, userId }),
+      headers: additionalHeaders,
+    });
+  } else {
+    console.error("No se pudo enviar el mensaje, WebSocket no conectado");
+  }
+}
+
+export const editMessage = (
+  messageId: string,
+  message: string,
+  userId: string,
+  additionalHeaders: StompHeaders = { Authorization: `Bearer ${token}` }
+): void => {
+  if (stompClient && stompClient.connected) {
+    stompClient.publish({
+      destination: "/app/edit-message",
+      body: JSON.stringify({ id: messageId, message: message, userId }),
+      headers: additionalHeaders,
+    });
+  } else {
+    console.error("No se pudo enviar el mensaje, WebSocket no conectado");
+  }
+}
+
+export const deleteMessage = (
+  messageId: string,
+  userId: string,
+  additionalHeaders: StompHeaders = { Authorization: `Bearer ${token}` }
+): void => {
+  if (stompClient && stompClient.connected) {
+    stompClient.publish({
+      destination: "/app/delete-message",
+      body: JSON.stringify({id: messageId, userId }),
       headers: additionalHeaders,
     });
   } else {
