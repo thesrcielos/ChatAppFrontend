@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/services/UserContext";
+import { MessageSquareText } from "lucide-react";
 import { getUsersChatInfo, getChatMessages } from "@/api/ChatApi";
 import { Chat, Message } from "@/types/types";
 import { useChatStore } from "@/store/chatStore";
@@ -26,7 +27,7 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [dataFetched, setDataFetched] = useState(false);
     const isOpen = selectedChat === chat.id;
-
+    const contacts = useChatStore((state) => state.contacts);
     useEffect(() => {
         const getMessages = async () => {
            if (!chat.id) return;
@@ -34,9 +35,8 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
           setContacts(users);
           if(messages && messages.length > 0) return;
           let date = new Date();
-          const messagesData = await getChatMessages(chat.id, date, 1);
-          setMessages(String(chat.id), messagesData.values);
-          console.log("messages:", messages);
+          const messagesFetched = await getChatMessages(chat.id, date, 1);
+          setMessages(String(chat.id), messagesFetched.values);
         }
         getMessages();
     }, [chat.id]);
@@ -95,21 +95,52 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
       console.log("Mensajes obtenidos:", data);
       addMessages(String(chat.id), data.values);
       setDataFetched(true);
-    }
 
+    }
     const getChatName = () => {
       if (chat.isGroup) {
         return chat.group.name;
       }
       return chat.contact.name;
     };
-
+  
+    const getPicture = (): React.ReactNode => {
+  if (chat.isGroup && chat.group.image) {
+    return (
+      <img
+        src={chat.group.image}
+        alt="Grupo"
+        className="w-8 h-8 rounded-full object-cover"
+      />
+    );
+  } else if (!chat.isGroup) {
+    const user = contacts[chat.contact.contact];
+    if (user?.picture) {
+      return (
+        <img
+          src={user.picture}
+          alt={user.name}
+          className="w-8 h-8 rounded-full object-cover"
+        />
+      );
+    }
+  }
+   return (
+    <div className="bg-blue-500 p-2 rounded-full">
+      <MessageSquareText className="text-white" size={24} />
+    </div>
+  );
+};
     if (!isOpen) {
       return null;
     } 
+    
     return (
       <main className="flex-1 flex flex-col w-3/5">
-        <ChatHeader chatName={getChatName()} />
+        <ChatHeader 
+          chatName={getChatName()} 
+          avatar={getPicture()} 
+        /> 
         <ChatBody messages={messages} userId={userId} chat={chat} />
         <ChatFooter
           chat={chat}

@@ -1,4 +1,5 @@
 import { MoreVertical  } from "lucide-react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,11 @@ import AddContactModal from "./AddContactModal";
 import RequestsModal from "./RequestModal";
 import CreateChatGroupModal from "./CreateGroupModal";
 
-const UserMenu = () => {
+interface UserMenuProps {
+    onOpenProfile: () => void;
+}   
+
+const UserMenu = ({onOpenProfile}:UserMenuProps) => {
     const { logout } = useUser();
     return (
             <DropdownMenu modal={false}>
@@ -18,7 +23,7 @@ const UserMenu = () => {
                     <MoreVertical/>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem>Perfil</DropdownMenuItem>
+                    <DropdownMenuItem onClick={onOpenProfile}>Perfil</DropdownMenuItem>
                     <RequestsModal>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Solicitudes</DropdownMenuItem>
                     </RequestsModal>
@@ -33,7 +38,7 @@ const UserMenu = () => {
                     <DropdownMenuItem onClick={logout}>Cerrar Sesion</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-    )
+        )
 }
 
 export default UserMenu;

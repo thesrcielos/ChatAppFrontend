@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
 import { getUserChats, getUserChatsByPatterns} from "../api/ChatApi";
+import Perfil from "./Profile"
 import { useUser } from "@/services/UserContext";
 import {jwtDecode} from "jwt-decode";
 import ListChatMessages from "./ListChatMessages";
@@ -19,6 +20,7 @@ export default function ChatApp() {
   const selectedChat = useChatStore((state) => state.selectedChat);
   const setSelectedChat = useChatStore((state) => state.setSelectedChat);
   const {userId, setUserId} = useUser();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [contactsFetched, setContactsFetched] = useState(false);
 
@@ -57,7 +59,9 @@ export default function ChatApp() {
       <CardHeader className="flex flex-col gap-4 justify-start items-start">
         <div className="w-full flex justify-between items-center gap-3">
           <h2 className="text-left font-bold text-lg flex-grow">Chats</h2>
-          <UserMenu/> 
+          <UserMenu 
+            onOpenProfile={() => setIsProfileOpen(true)}
+          /> 
         </div>
 
         <div className="search-contacts inline-flex items-center w-full border rounded-lg px-3 py-2">
@@ -70,6 +74,12 @@ export default function ChatApp() {
             className="w-full text-xl border-none focus:outline-none focus:ring-0 bg-transparent ml-2"
           />
         </div>
+        {isProfileOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <Perfil onClose={() => setIsProfileOpen(false)} />
+          </div>
+        )}
+        
       </CardHeader>
         <CardContent className="relative w-[100%] p-0 overflow-y-auto">
           {contacts?.length > 0 ? (
