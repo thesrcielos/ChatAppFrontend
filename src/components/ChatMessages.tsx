@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/services/UserContext";
-import { MessageSquareText } from "lucide-react";
+import { MessageSquareText, ArrowLeft } from "lucide-react";
 import { getUsersChatInfo, getChatMessages } from "@/api/ChatApi";
 import { Chat, Message } from "@/types/types";
 import { useChatStore } from "@/store/chatStore";
@@ -8,6 +8,9 @@ import ChatHeader from "./ChatHeader";
 import ChatBody from "./ChatBody";
 import ChatFooter from "./ChatFooter";
 import { markSeenMessages } from "@/services/MessageService";
+import "./ChatMessages.css";
+
+
 
 interface ChatMessagesProps {
     chat: Chat;
@@ -105,38 +108,35 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
     };
   
     const getPicture = (): React.ReactNode => {
-  if (chat.isGroup && chat.group.image) {
-    return (
-      <img
-        src={chat.group.image}
-        alt="Grupo"
-        className="w-8 h-8 rounded-full object-cover"
-      />
-    );
-  } else if (!chat.isGroup) {
-    const user = contacts[chat.contact.contact];
-    if (user?.picture) {
+      if (chat.isGroup && chat.group.image) {
+        return (
+          <img
+            src={chat.group.image}
+            alt="Grupo"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        );
+      } else if (!chat.isGroup) {
+        const user = contacts[chat.contact.contact];
+        if (user?.picture) {
+          return (
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          );
+        }
+      }
       return (
-        <img
-          src={user.picture}
-          alt={user.name}
-          className="w-8 h-8 rounded-full object-cover"
-        />
+        <div className="bg-blue-500 p-2 rounded-full">
+          <MessageSquareText className="text-white" size={24} />
+        </div>
       );
-    }
-  }
-   return (
-    <div className="bg-blue-500 p-2 rounded-full">
-      <MessageSquareText className="text-white" size={24} />
-    </div>
-  );
-};
-    if (!isOpen) {
-      return null;
-    } 
-    
-    return (
-      <main className="flex-1 flex flex-col w-3/5">
+    };
+
+    return ( isOpen ?
+      <main className="sm:w-[100vw] relative flex-1 flex flex-col min-w-[300px]">
         <ChatHeader 
           chatName={getChatName()} 
           avatar={getPicture()} 
@@ -149,7 +149,7 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
           setNewMessage={setNewMessage}
           setMessage={setMessage}
         />
-      </main>);
+      </main>: null);
 }
 
 export default ChatMessages;

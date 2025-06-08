@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   getUserInfo,
   uploadProfilePicture,
@@ -6,9 +6,12 @@ import {
 } from "@/api/UserApi";
 import { useUser } from "../services/UserContext";
 import { MessageSquareText } from 'lucide-react';
+import useIsMobile from "@/services/IsMobile";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "./ui/dialog";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 type PerfilProps = {
-  onClose: () => void;
+  children: ReactNode;
 };
 
 export interface User {
@@ -44,11 +47,13 @@ function convertToWebP(file: File, quality = 0.8): Promise<Blob> {
     reader.readAsDataURL(file);
   });
 }
-const Perfil = ({ onClose }: PerfilProps) => {
+const Perfil = ({children }: PerfilProps) => {
   const [user, setUser] = useState<User | null>(null);
   const { userId } = useUser(); 
   const [showOptions, setShowOptions] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -61,6 +66,7 @@ const Perfil = ({ onClose }: PerfilProps) => {
     };
     loadUser();
   }, [userId]);
+
  const getPicture = (): React.ReactNode => {
   if (user?.picture) {
     return (
@@ -131,29 +137,21 @@ const Perfil = ({ onClose }: PerfilProps) => {
     setShowOptions(false);
   };
 
-  if (!user) {
-    return (
-      <div className="bg-white p-6 rounded shadow-md w-96 text-center">
-        Cargando perfil...
-      </div>
-    );
-  }
-
   return (
-    <div className="relative bg-white shadow rounded-lg p-6 w-96">
-      {/* Cabecera */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Perfil de Usuario</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 text-xl"
-        >
-          &times;
-        </button>
-      </div>
+    <Dialog>
+      <DialogTrigger className="w-full">
+        {children}
+      </DialogTrigger>
+      <DialogContent className={`${isMobile ? "fixed top-0 left-0 translate-x-0 translate-y-0 rounded-none":""}`}>
+        <DialogHeader>
+          <DialogTitle>
+            Perfil de Usuario
+          </DialogTitle>
+        </DialogHeader>
 
-      {/* Contenido */}
-      <div className="flex flex-col items-center">
+      {user ? (
+      <>  
+        <div className="flex flex-col items-center">
         {getPicture()}
         <h3 className="text-xl font-medium">{user.name}</h3>
         {user.email && (
@@ -161,7 +159,6 @@ const Perfil = ({ onClose }: PerfilProps) => {
         )}
       </div>
 
-      {/* Menú de opciones */}
       {showOptions && (
         <div className="absolute top-40 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-3 z-50">
           <label className="block cursor-pointer text-blue-500 hover:underline">
@@ -181,7 +178,12 @@ const Perfil = ({ onClose }: PerfilProps) => {
           </button>
         </div>
       )}
-    </div>
+      </> ):
+      <div className="bg-white p-6 rounded shadow-md w-96 text-center">
+        Cargando perfil...
+      </div>}
+      </DialogContent>
+    </Dialog>
   );
 };
 

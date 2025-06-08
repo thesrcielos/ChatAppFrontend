@@ -9,6 +9,7 @@ import "./RequestModal.css";
 import { useUser } from "../services/UserContext";
 import { Dialog, DialogTrigger,DialogContent, DialogHeader
       ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
+import useIsMobile from "@/services/IsMobile";
 
 interface ContactRequest {
   id: string;
@@ -25,6 +26,7 @@ export default function RequestsModal({ children}: RequestsModalProps) {
   const [sentRequests, setSentRequests] = useState<ContactRequest[]>([]);
   const [sentRequestsFetched, setSentRequestsFetched] = useState(false);
   const { userId } = useUser();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!sentRequestsFetched) {
@@ -74,90 +76,96 @@ export default function RequestsModal({ children}: RequestsModalProps) {
 
   return (
     <Dialog>
-       <DialogTrigger className="w-full">
-            {children}
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+      <DialogTrigger className="w-full">
+        {children}
+      </DialogTrigger>
+      <DialogContent className={`sm:max-w-md ${isMobile ? 'w-[95vw] translate-x-0 translate-y-0 fixed top-0 left-0 rounded-none max-h-screen overflow-auto' : ''} m-2`}>
         <DialogHeader>
-          <DialogTitle>Solicitudes de Contacto</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Solicitudes de Contacto</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="Recibidas" aria-label="Solicitudes">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="Recibidas">Recibidas</TabsTrigger>
             <TabsTrigger value="Enviadas">Enviadas</TabsTrigger>
           </TabsList>
+
           <TabsContent value="Recibidas" aria-label="Solicitudes Recibidas">
             <Card className="bg-gray-50 shadow-sm rounded-lg">
-              <CardContent>
+              <CardContent className="p-2 sm:p-4">
                 {receivedRequests.length > 0 ? (
                   receivedRequests.map((user) => (
-                    <div key={user.id} className="flex justify-between items-center p-2 border-b">
+                    <div
+                      key={user.id}
+                      className={`flex ${isMobile ? 'flex-col gap-2 items-start' : 'justify-between items-center'} p-2 border-b`}
+                    >
                       <div>
                         <p className="text-left">{user.name}</p>
-                        <p className="text-left">{user.email}</p>
+                        <p className="text-left text-sm text-gray-600">{user.email}</p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 self-end sm:self-auto">
                         <Button
                           onClick={() => acceptRequest(user.id)}
-                          className="button-ry bg-green-600 hover:bg-green-600 text-white w-8 h-8 aspect-square 
-                          flex items-center justify-center cursor-pointer"
+                          className="bg-green-600 hover:bg-green-700 text-white w-10 h-10 flex items-center justify-center"
                         >
-                          <Check className="w-6 h-6" />
+                          <Check className="w-5 h-5" />
                         </Button>
                         <Button
                           onClick={() => rejectRequest(user.id)}
-                          className="button-rx bg-red-600 hover:bg-red-600 text-white w-8 h-8 aspect-square 
-                          flex items-center justify-center cursor-pointer"
+                          className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 flex items-center justify-center"
                         >
-                          <X className="w-6 h-6" />
+                          <X className="w-5 h-5" />
                         </Button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center">No hay solicitudes pendientes.</p>
+                  <p className="text-gray-500 text-center py-2">No hay solicitudes pendientes.</p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="Enviadas" arial-label="Solicitudes Enviadas">
+          <TabsContent value="Enviadas" aria-label="Solicitudes Enviadas">
             <Card className="bg-gray-50 shadow-sm rounded-lg">
-              <CardContent>
+              <CardContent className="p-2 sm:p-4">
                 {sentRequests.length > 0 ? (
                   sentRequests.map((user) => (
-                    <div key={user.id} className="flex justify-between items-center p-2 border-b">
-                    <div>
-                      <p>{user.name}</p>
-                      <p>{user.email}</p>
+                    <div
+                      key={user.id}
+                      className={`flex ${isMobile ? 'flex-col gap-2 items-start' : 'justify-between items-center'} p-2 border-b`}
+                    >
+                      <div>
+                        <p>{user.name}</p>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                      <div className="flex gap-2 self-end sm:self-auto">
+                        <Button
+                          onClick={() => handleDeleteRequest(Number(user.id))}
+                          className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 flex items-center justify-center"
+                        >
+                          <X className="w-5 h-5" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleDeleteRequest(Number(user.id))}
-                        className="button-rx bg-red-600 hover:bg-red-600 text-white aspect-square flex 
-                        items-center justify-center cursor-pointer w-8 h-8"
-                      >
-                        <X className="w-6 h-6" />
-                      </Button>
-                    </div>
-                  </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center">No has enviado solicitudes.</p>
+                  <p className="text-gray-500 text-center py-2">No has enviado solicitudes.</p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-        <DialogFooter className="sm:justify-start">
+
+        <DialogFooter className="sm:justify-start mt-4">
           <DialogClose asChild>
-            <Button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg cursor-pointer"
-            onClick={() => {
-              setSentRequestsFetched(false);
-              setReceivedRequests([]);
-            }}
-          >
-            Cerrar
+            <Button
+              onClick={() => {
+                setSentRequestsFetched(false);
+                setReceivedRequests([]);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
+            >
+              Cerrar
             </Button>
           </DialogClose>
         </DialogFooter>
