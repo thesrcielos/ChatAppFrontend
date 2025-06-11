@@ -35,14 +35,14 @@ const CreateChatGroupModal = ({ children }: CreateChatGroupModalProps) => {
     }
   
     const userList = participants.map((user) => user.contact);
-    createGroup(groupName, userList)
+    createGroup(groupName, description,userList)
     setGroupName('');
     setDescription('');
     setParticipants([]);
   };
   
-  const createGroup = async (name: string, members: number[]) => {
-      const result =  await createGroupChat(name, Number(userId), members);
+  const createGroup = async (name: string, description: string,members: number[]) => {
+      const result =  await createGroupChat(name, description,Number(userId), members);
       if(!result) {
         toast.info("Error al crear el grupo, intenta nuevamente");
         return;
