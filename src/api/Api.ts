@@ -29,8 +29,11 @@ const axiosInstance = () => {
       if (error.response) {
         const status = error.response.status;
         if (status === 401) {
-          console.log('Unauthorized. Logging out...');
-          removeToken();
+          const currentToken = Cookies.get('token');
+          if (currentToken) {
+            console.log('Unauthorized. Logging out...');
+            removeToken();
+          }
         }
       }
       return Promise.reject(error);
@@ -39,6 +42,5 @@ const axiosInstance = () => {
   
   return instance;
 }
-
 
 export default axiosInstance;

@@ -167,3 +167,13 @@ export const deleteProfilePicture = async (userId: number): Promise<void> => {
 export const getChatGroupInfo = async (chatId:number): Promise<Chat | null> => {
   return null;
 }
+
+export const deleteContacts = async (id: number, contactId: number) => {
+  try {
+      await api.delete(`${BACKEND_URL}/users/${id}/contact/${contactId}`);
+      return true;
+    } catch (error) {
+      console.error('Error al crear el post:', error);
+      return false;
+    }
+}

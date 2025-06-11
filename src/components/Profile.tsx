@@ -3,7 +3,7 @@ import {
   getUserInfo,
   uploadProfilePicture,
   deleteProfilePicture,
-  getChatGroupInfo
+  deleteContacts  
 } from "@/api/UserApi";
 import { useUser } from "../services/UserContext";
 import { MessageSquareText, Shield, Trash2, Users, LogOut } from 'lucide-react';
@@ -168,10 +168,30 @@ const Perfil = ({ onClose, contactId, isGroup, chatId, children }: PerfilProps) 
     setShowOptions(false);
   };
 
-  const handleOptionClick = (action: string) => {
-    console.log(`Acción seleccionada: ${action}`);
-    onClose();
+   const handleOptionClick = async (action: string) => {
+    if (action === 'delete' && userId && contactId) {
+      try {
+        console.log('Eliminando contacto:', { userId, contactId });
+        const success = await deleteContacts(Number(userId), Number(contactId));
+        if (success) {
+          console.log('Contacto eliminado exitosamente');
+          onClose();
+        } else {
+          console.error('Error al eliminar el contacto');
+        }
+      } catch (error) {
+        console.error('Error al eliminar el contacto:', error);
+      }
+    } else if (action === 'block' && userId && contactId) {
+      // Aquí puedes agregar la lógica para bloquear contacto
+      console.log('Bloquear contacto');
+      onClose();
+    } else {
+      console.log(`Acción seleccionada: ${action}`);
+      onClose();
+    }
   };
+
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
@@ -228,34 +248,27 @@ const Perfil = ({ onClose, contactId, isGroup, chatId, children }: PerfilProps) 
                   <>
                     <button
                       onClick={() => handleOptionClick('groupInfo')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      className="w-full flex items-center justify-center gap-2 p-2 text-gray-700 hover:bg-gray-100 rounded"
                     >
-                      <Users className="w-4 h-4 mr-2" />
+                      <Users className="w-5 h-5" />
                       Información del grupo
-                    </button>
-                    <button
-                      onClick={() => handleOptionClick('leaveGroup')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-md"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Salir del grupo
                     </button>
                   </>
                 ) : (
                   <>
                     <button
-                      onClick={() => handleOptionClick('block')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => handleOptionClick('delete')}
+                      className="w-full flex items-center justify-center gap-2 p-2 text-red-600 hover:bg-red-50 rounded"
                     >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Bloquear contacto
+                      <Trash2 className="w-5 h-5" />
+                      Eliminar contacto
                     </button>
                     <button
-                      onClick={() => handleOptionClick('delete')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-md"
+                      onClick={() => handleOptionClick('block')}
+                      className="w-full flex items-center justify-center gap-2 p-2 text-gray-700 hover:bg-gray-100 rounded"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Eliminar contacto
+                      <Shield className="w-5 h-5" />
+                      Bloquear contacto
                     </button>
                   </>
                 )}
