@@ -80,7 +80,7 @@ export const Login = () => {
   };
 
   return (
-    <main className="flex justify-center items-center min-h-screen bg-gray-100">
+    <main className="flex justify-center items-center w-[100vw] min-h-screen bg-gray-100">
       <Card className="w-96 p-6 shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
 

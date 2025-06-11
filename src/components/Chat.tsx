@@ -4,7 +4,6 @@ import { Search } from "lucide-react";
 import { Card, CardHeader, CardContent  } from "./ui/card";
 import { Input } from "./ui/input";
 import { getUserChats, getUserChatsByPatterns} from "../api/ChatApi";
-import Perfil from "./Profile"
 import { useUser } from "@/services/UserContext";
 import {jwtDecode} from "jwt-decode";
 import ListChatMessages from "./ListChatMessages";
@@ -13,6 +12,7 @@ import ChatListItem from "./ChatListItem";
 import { useChatStore } from "@/store/chatStore";
 import {Toaster} from "./ui/sonner";
 import Cookies from "js-cookie";
+import useIsMobile from "@/services/IsMobile";
 
 export default function ChatApp() {
   const contacts = useChatStore((state) => state.chats);
@@ -20,9 +20,9 @@ export default function ChatApp() {
   const selectedChat = useChatStore((state) => state.selectedChat);
   const setSelectedChat = useChatStore((state) => state.setSelectedChat);
   const {userId, setUserId} = useUser();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [contactsFetched, setContactsFetched] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect( () => {
       const load = async ()=>{
@@ -54,14 +54,14 @@ export default function ChatApp() {
   }
 
   return (
-    <div className="container-chat flex justify-left items-left h-screen">
-    <Card className="w-2/5 bg-gray-100 rounded-lg shadow-md">
+    <div className="container-chat flex justify-left items-left w-[100vw] h-screen">
+    {(selectedChat === null || window.innerWidth > 700) && (<Card className={`chat-list bg-gray-100 rounded-lg 
+     ${isMobile ? 'w-full' : 'flex-1'}
+     flex-col min-w-[300px] max-w-[600px] shadow-md overflow-y-auto`}>
       <CardHeader className="flex flex-col gap-4 justify-start items-start">
         <div className="w-full flex justify-between items-center gap-3">
           <h2 className="text-left font-bold text-lg flex-grow">Chats</h2>
-          <UserMenu 
-            onOpenProfile={() => setIsProfileOpen(true)}
-          /> 
+          <UserMenu /> 
         </div>
 
         <div className="search-contacts inline-flex items-center w-full border rounded-lg px-3 py-2">
@@ -71,17 +71,11 @@ export default function ChatApp() {
             placeholder="Buscar..." 
             value={searchTerm}  
             onChange={(e) => handleSearchTerm(e.target.value)} 
-            className="w-full text-xl border-none focus:outline-none focus:ring-0 bg-transparent ml-2"
+            className="w-full text-md border-none focus:outline-none focus:ring-0 bg-transparent ml-2"
           />
-        </div>
-        {isProfileOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <Perfil onClose={() => setIsProfileOpen(false)} />
-          </div>
-        )}
-        
+        </div>      
       </CardHeader>
-        <CardContent className="relative w-[100%] p-0 overflow-y-auto">
+       <CardContent className="relative w-full p-0 overflow-y-auto">
           {contacts?.length > 0 ? (
             contacts.map((chat) => (
                 <ChatListItem key={chat.id} onClick={()=>setSelectedChat(chat.id)}
@@ -91,7 +85,10 @@ export default function ChatApp() {
             <p className="text-gray-500 text-center">No hay chats disponibles</p>
           )}
         </CardContent>
-    </Card>
+    </Card>)}
+    {(!isMobile && selectedChat === null) && (
+      <div className="relative flex-1 flex flex-col"></div>
+    )}
     <ListChatMessages 
       contacts={contacts}  
       />

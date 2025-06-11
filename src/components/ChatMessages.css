@@ -1,0 +1,16 @@
+.hide-on-large {
+  display: none;
+}
+
+
+
+@media (max-width: 700px) {
+    .chat-messages{
+        width: 100vw;
+    }
+
+    .hide-on-large {
+    display: block;
+  }
+    
+}

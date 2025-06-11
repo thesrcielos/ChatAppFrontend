@@ -10,12 +10,10 @@ import { useUser } from "../services/UserContext";
 import AddContactModal from "./AddContactModal";
 import RequestsModal from "./RequestModal";
 import CreateChatGroupModal from "./CreateGroupModal";
+import Perfil from "./Profile";
 
-interface UserMenuProps {
-    onOpenProfile: () => void;
-}   
 
-const UserMenu = ({onOpenProfile}:UserMenuProps) => {
+const UserMenu = () => {
     const { logout } = useUser();
     return (
             <DropdownMenu modal={false}>
@@ -23,7 +21,9 @@ const UserMenu = ({onOpenProfile}:UserMenuProps) => {
                     <MoreVertical/>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem onClick={onOpenProfile}>Perfil</DropdownMenuItem>
+                    <Perfil>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Perfil</DropdownMenuItem>
+                    </Perfil>
                     <RequestsModal>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Solicitudes</DropdownMenuItem>
                     </RequestsModal>

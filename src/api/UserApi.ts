@@ -1,5 +1,6 @@
 import { StringifyOptions } from "querystring";
 import axiosInstance from "./Api.js";
+import { he } from "date-fns/locale.js";
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api";
@@ -90,6 +91,7 @@ export const rejectContactRequest = async (id: number) => {
     return false;
   }
 }
+
 export const sendContactRequest = async (userId: number , contactId: number) => {
   try {
       await api.post(`${BACKEND_URL}/users/contacts/request` ,
@@ -116,24 +118,14 @@ export const getUsersByPatterns = async (pattern: string, id: string,page: numbe
 }
 export const getUserInfo = async (userId: number): Promise<User | null> => {
   try {
-    const token = localStorage.getItem("token");
-    console.log(token);
-    const response = await fetch(`http://localhost:8080/users/${userId}`, {
-      headers: {
-        Authorization : `Bearer ${token}`,
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data: User = await response.json();
-    return data;
+    const response = await api.get(`http://localhost:8080/users/${userId}`);
+    return await response.data;
   } catch (error) {
     console.error("Error al obtener la información del usuario:", error);
     return null;
   }
 };
+
 export const uploadProfilePicture = async (
   userId: number,
   file: File
@@ -145,16 +137,13 @@ export const uploadProfilePicture = async (
   formData.append("userId", String(userId));
 
   try {
-    const response = await fetch(`${BACKEND_URL}/files/profile-picture`, {
-      method: "POST",
+    const response = await api.post(`${BACKEND_URL}/files/profile-picture`, formData, { 
       headers: {
-        
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        "Content-Type": "multipart/form-data",  
       },
-      body: formData, 
     });
 
-    return response.ok;
+    return true;
   } catch (error) {
     console.error("Error al subir la foto de perfil:", error);
     return false;
@@ -163,14 +152,8 @@ export const uploadProfilePicture = async (
 
 
 export const deleteProfilePicture = async (userId: number): Promise<void> => {
-  const token = localStorage.getItem("token");
   try {
-    await fetch(`${BACKEND_URL}/files/${userId}/profile-picture`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.delete(`${BACKEND_URL}/files/${userId}/profile-picture`);
   } catch (error) {
     console.error("Error al eliminar la imagen de perfil:", error);
   }

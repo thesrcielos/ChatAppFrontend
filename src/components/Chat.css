@@ -8,9 +8,6 @@
     padding-bottom: 3px;
 }
 
-.container-chat{
-    width: 100%;
-}
 
 .search-contacts {
     height: 40px;
@@ -43,4 +40,14 @@
     background-color: transparent;
     color: gray;
     font-size: 20px;
+}
+
+.chat-list{
+    flex-grow: 0.68;
+}
+
+@media (max-width: 720px) {
+    .chat-list{
+        width: 100vw;
+    }
 }
