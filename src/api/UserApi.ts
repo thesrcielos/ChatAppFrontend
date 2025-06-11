@@ -8,6 +8,11 @@ export interface User {
   name: string;
   email: string;
 }
+export interface Chat {
+  id: number,
+  description: string,
+  picture?:string
+}
 
 const api = axiosInstance();
 export const acceptContact = async (id: number) => {
@@ -116,19 +121,11 @@ export const getUsersByPatterns = async (pattern: string, id: string,page: numbe
 }
 export const getUserInfo = async (userId: number): Promise<User | null> => {
   try {
-    const token = localStorage.getItem("token");
-    console.log(token);
-    const response = await fetch(`http://localhost:8080/users/${userId}`, {
-      headers: {
-        Authorization : `Bearer ${token}`,
-      }
+   
+    const response = await api.get(`http://localhost:8080/users/${userId}`, {
     });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data: User = await response.json();
-    return data;
+    return await response.data;
+    
   } catch (error) {
     console.error("Error al obtener la información del usuario:", error);
     return null;
@@ -175,3 +172,6 @@ export const deleteProfilePicture = async (userId: number): Promise<void> => {
     console.error("Error al eliminar la imagen de perfil:", error);
   }
 };
+export const getChatGroupInfo = async (chatId:number): Promise<Chat | null> => {
+  return null;
+}

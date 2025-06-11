@@ -3,12 +3,18 @@ import {
   getUserInfo,
   uploadProfilePicture,
   deleteProfilePicture,
+  getChatGroupInfo
 } from "@/api/UserApi";
 import { useUser } from "../services/UserContext";
-import { MessageSquareText } from 'lucide-react';
+import { MessageSquareText, Shield, Trash2, Users, LogOut } from 'lucide-react';
+import { useChatStore } from "@/store/chatStore";
+
 
 type PerfilProps = {
   onClose: () => void;
+  contactId?: string;
+  isGroup?: boolean;
+  chatId?: number;
 };
 
 export interface User {
@@ -17,6 +23,13 @@ export interface User {
   email?: string;
   picture?: string;
 }
+
+export interface Group {
+  name: string;
+  groupUsers: number[];
+  image: string;
+}
+
 function convertToWebP(file: File, quality = 0.8): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -44,45 +57,73 @@ function convertToWebP(file: File, quality = 0.8): Promise<Blob> {
     reader.readAsDataURL(file);
   });
 }
-const Perfil = ({ onClose }: PerfilProps) => {
+
+const Perfil = ({ onClose, contactId, isGroup, chatId }: PerfilProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [group, setGroup] = useState<Group | null>(null);
   const { userId } = useUser(); 
   const [showOptions, setShowOptions] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const isOwnProfile = !contactId;
+  const targetId = contactId ?? userId;
+  const chats = useChatStore((state) => state.chats);
+
   useEffect(() => {
-    const loadUser = async () => {
+    const loadProfile = async () => {
       try {
-        if (!userId) return;
-        const data = await getUserInfo(Number(userId));
-        setUser(data);
+        if (!targetId) return;
+        
+        if (isGroup && chatId) {
+          // Find the group in the chats list using chatId
+          const groupChat = chats.find(chat => chat.isGroup && chat.id === chatId);
+          if (groupChat) {
+            setGroup(groupChat.group);
+          }
+        } else {
+          const data = await getUserInfo(Number(targetId));
+          setUser(data);
+        }
       } catch (error) {
         console.error("Error al cargar el perfil:", error);
       }
     };
-    loadUser();
-  }, [userId]);
- const getPicture = (): React.ReactNode => {
-  if (user?.picture) {
+    loadProfile();
+  }, [targetId, isGroup, chats, chatId]);
+
+  const getPicture = (): React.ReactNode => {
+    if (isGroup) {
+      if (group?.image) {
+        return (
+          <img
+            src={group.image}
+            alt="Foto del grupo"
+            className="w-24 h-24 rounded-full mb-4 cursor-pointer object-cover"
+            onClick={handleImageClick}
+          />
+        );
+      }
+    } else if (user?.picture) {
+      return (
+        <img
+          src={user.picture}
+          alt="Foto de perfil"
+          className="w-24 h-24 rounded-full mb-4 cursor-pointer object-cover"
+          onClick={handleImageClick}
+        />
+      );
+    }
     return (
-      <img
-        src={user.picture}
-        alt="Foto de perfil"
-        className="w-24 h-24 rounded-full mb-4 cursor-pointer object-cover"
+      <div
+        className="w-24 h-24 rounded-full mb-4 flex items-center justify-center bg-gray-300 cursor-pointer"
         onClick={handleImageClick}
-      />
+      >
+        <MessageSquareText className="text-white" size={24} />
+      </div>
     );
-  }
-  return (
-    <div
-      className="w-24 h-24 rounded-full mb-4 flex items-center justify-center bg-gray-300 cursor-pointer"
-      onClick={handleImageClick}
-    >
-      <MessageSquareText className="text-white" size={24} />
-    </div>
-  );
-};
+  };
+
   const handleImageClick = () => {
-    setShowOptions((v) => !v);
+    if (isOwnProfile) setShowOptions((v) => !v);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +131,6 @@ const Perfil = ({ onClose }: PerfilProps) => {
     if (!originalFile || !user) return;
     
     try {
-    
       const webpBlob = await convertToWebP(originalFile, 0.8);
       const webpFile = new File(
         [webpBlob],
@@ -98,7 +138,6 @@ const Perfil = ({ onClose }: PerfilProps) => {
         { type: "image/webp" }
       );
       
-     
       const formData = new FormData();
       formData.append("file", webpFile);
       formData.append("userId", String(user.id));
@@ -113,15 +152,13 @@ const Perfil = ({ onClose }: PerfilProps) => {
         }
       }
       setShowOptions(false);
-    }catch (err) {
+    } catch (err) {
       console.error("Error en conversión a WebP:", err);
     } finally {
       setShowOptions(false);
-
     }
-  }
+  };
     
- 
   const handleDelete = async () => {
     if (user) {
       await deleteProfilePicture(user.id);
@@ -131,7 +168,13 @@ const Perfil = ({ onClose }: PerfilProps) => {
     setShowOptions(false);
   };
 
-  if (!user) {
+  const handleOptionClick = (action: string) => {
+    // Aquí implementaremos las acciones según la opción seleccionada
+    console.log(`Acción seleccionada: ${action}`);
+    onClose();
+  };
+
+  if (!user && !group) {
     return (
       <div className="bg-white p-6 rounded shadow-md w-96 text-center">
         Cargando perfil...
@@ -143,7 +186,7 @@ const Perfil = ({ onClose }: PerfilProps) => {
     <div className="relative bg-white shadow rounded-lg p-6 w-96">
       {/* Cabecera */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Perfil de Usuario</h2>
+        <h2 className="text-lg font-semibold">Perfil de {isGroup ? 'Grupo' : 'Usuario'}</h2>
         <button
           onClick={onClose}
           className="text-gray-500 hover:text-gray-700 text-xl"
@@ -155,14 +198,17 @@ const Perfil = ({ onClose }: PerfilProps) => {
       {/* Contenido */}
       <div className="flex flex-col items-center">
         {getPicture()}
-        <h3 className="text-xl font-medium">{user.name}</h3>
-        {user.email && (
+        <h3 className="text-xl font-medium">{isGroup ? group?.name : user?.name}</h3>
+        {!isGroup && user?.email && (
           <p className="text-gray-600 mb-2">{user.email}</p>
+        )}
+        {isGroup && group?.groupUsers && (
+          <p className="text-gray-600 mb-2">{group.groupUsers.length} participantes</p>
         )}
       </div>
 
       {/* Menú de opciones */}
-      {showOptions && (
+      {isOwnProfile && showOptions && !isGroup && (
         <div className="absolute top-40 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-3 z-50">
           <label className="block cursor-pointer text-blue-500 hover:underline">
             Editar foto
@@ -179,6 +225,47 @@ const Perfil = ({ onClose }: PerfilProps) => {
           >
             Eliminar foto
           </button>
+        </div>
+      )}
+
+      {/* Opciones de contacto/grupo */}
+      {!isOwnProfile && (
+        <div className="mt-6 space-y-2">
+          {isGroup ? (
+            <>
+              <button
+                onClick={() => handleOptionClick('groupInfo')}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Información del grupo
+              </button>
+              <button
+                onClick={() => handleOptionClick('leaveGroup')}
+                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-md"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Salir del grupo
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => handleOptionClick('block')}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Bloquear contacto
+              </button>
+              <button
+                onClick={() => handleOptionClick('delete')}
+                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-md"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Eliminar contacto
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

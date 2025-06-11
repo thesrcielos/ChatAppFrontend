@@ -135,12 +135,15 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
       return null;
     } 
     
-    return (
+   return (
       <main className="flex-1 flex flex-col w-3/5">
-        <ChatHeader 
-          chatName={getChatName()} 
-          avatar={getPicture()} 
-        /> 
+      <ChatHeader 
+        chatName={getChatName()} 
+        avatar={getPicture()} 
+        contactId={chat.isGroup ? undefined : String(chat.contact.contact)}
+        isGroup={chat.isGroup}
+        chatId={chat.id}
+      /> 
         <ChatBody messages={messages} userId={userId} chat={chat} />
         <ChatFooter
           chat={chat}
