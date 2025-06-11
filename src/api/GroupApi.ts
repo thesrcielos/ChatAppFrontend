@@ -2,11 +2,12 @@ import axiosInstance from "./Api.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL + "/api/chats";
 const api = axiosInstance();
-export const createGroupChat = async (name: string, userId: number, userList: number[]) => {
+export const createGroupChat = async (name: string, description: string,userId: number, userList: number[]) => {
   try {
     const data = await api.post(`${BACKEND_URL}/group/conversations`,
       {
         name: name,
+        description: description,
         userId: userId,
         groupUsers: userList
       }

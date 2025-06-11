@@ -8,6 +8,7 @@ import {createGroupChat} from "../api/GroupApi";
 import { useChatStore } from '@/store/chatStore';
 import { useUser } from '../services/UserContext';
 import { toast } from "sonner";
+import useIsMobile from '@/services/IsMobile';
 
 interface CreateChatGroupModalProps {
   children: React.ReactNode;
@@ -19,28 +20,29 @@ const CreateChatGroupModal = ({ children }: CreateChatGroupModalProps) => {
   const [participants, setParticipants] = useState<Contact[]>([]);
   const addChat = useChatStore((state) => state.addChat);
   const { userId } = useUser();
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    
     if (!groupName.trim()) {
       toast.info('Por favor ingresa un nombre para el grupo');
+      e.preventDefault();
       return;
     }
     if (participants.length == 0) {
       toast.info('Debes agregar al menos 1 participante al grupo');
+      e.preventDefault();
       return;
     }
   
     const userList = participants.map((user) => user.contact);
-    createGroup(groupName, userList)
+    createGroup(groupName, description,userList)
     setGroupName('');
     setDescription('');
     setParticipants([]);
   };
   
-  const createGroup = async (name: string, members: number[]) => {
-      const result =  await createGroupChat(name, Number(userId), members);
+  const createGroup = async (name: string, description: string,members: number[]) => {
+      const result =  await createGroupChat(name, description,Number(userId), members);
       if(!result) {
         toast.info("Error al crear el grupo, intenta nuevamente");
         return;
@@ -70,7 +72,7 @@ const CreateChatGroupModal = ({ children }: CreateChatGroupModalProps) => {
       <DialogTrigger className="w-full">
           {children}
         </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`sm:max-w-md ${isMobile ? "fixed top-0 left-0 translate-x-0 translate-y-0 rounded-none m-0":""}`}>
         <DialogHeader>
           <DialogTitle>Crear Grupo</DialogTitle>
         </DialogHeader>
@@ -143,13 +145,13 @@ const CreateChatGroupModal = ({ children }: CreateChatGroupModalProps) => {
             )}
           </div>
         </form>
-        <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
+        <DialogFooter className="w-full flex-row">
+          <DialogClose asChild className='flex-1 m-1'>
             <Button type="button" className='cursor-pointer' onClick={handleSubmit}>
               Crear Grupo
             </Button>
           </DialogClose>
-          <DialogClose asChild>
+          <DialogClose asChild className='flex-1 m-1'>
             <Button type="button" className='cursor-pointer' onClick={close}>
               Cancelar
             </Button>

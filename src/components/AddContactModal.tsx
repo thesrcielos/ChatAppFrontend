@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Check } from "lucide-react";
 import { Dialog, DialogTrigger,DialogContent, DialogHeader
       ,DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
+import useIsMobile from "@/services/IsMobile";
 
 interface AddContactModalProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ const AddContactModal = ({children}: AddContactModalProps) => {
   const [searchResult, setSearchResult] = useState<ContactSearch[]>([]);
   const { userId } = useUser();
   const [contactsAdded, setContactsAdded] = useState(new Set<string>());
+  const isMobile = useIsMobile();
 
   const handleSearch = async () => {
     const coincidences = await getUsersByPatterns(searchTerm, userId ?? "", 0, 5);
@@ -36,7 +38,7 @@ const AddContactModal = ({children}: AddContactModalProps) => {
       <DialogTrigger>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`sm:max-w-md ${isMobile ? "fixed top-0 left-0 translate-x-0 translate-y-0 rounded-none m-0":""}`}>
         <DialogHeader>
           <DialogTitle>Añadir Contacto</DialogTitle>
         </DialogHeader>

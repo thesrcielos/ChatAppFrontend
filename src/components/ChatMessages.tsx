@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/services/UserContext";
-import { MessageSquareText } from "lucide-react";
+import { MessageSquareText, ArrowLeft } from "lucide-react";
 import { getUsersChatInfo, getChatMessages } from "@/api/ChatApi";
 import { Chat, Message } from "@/types/types";
 import { useChatStore } from "@/store/chatStore";
@@ -8,6 +8,7 @@ import ChatHeader from "./ChatHeader";
 import ChatBody from "./ChatBody";
 import ChatFooter from "./ChatFooter";
 import { markSeenMessages } from "@/services/MessageService";
+import "./ChatMessages.css";
 
 interface ChatMessagesProps {
     chat: Chat;
@@ -28,6 +29,7 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
     const [dataFetched, setDataFetched] = useState(false);
     const isOpen = selectedChat === chat.id;
     const contacts = useChatStore((state) => state.contacts);
+
     useEffect(() => {
         const getMessages = async () => {
            if (!chat.id) return;
@@ -59,24 +61,24 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
     
     let seenTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  const markMessagesAsSeen = () => {
-    if (!chat.id || chat.unseenMessages <= 0 || !isOpen) return;
+    const markMessagesAsSeen = () => {
+      if (!chat.id || chat.unseenMessages <= 0 || !isOpen) return;
 
-    if (seenTimeout) {
-      clearTimeout(seenTimeout);
-    }
-    seenTimeout = setTimeout(() => {
-      const lastMessage = messages[messages.length - 1];
-      if (!lastMessage) return;
+      if (seenTimeout) {
+        clearTimeout(seenTimeout);
+      }
+      seenTimeout = setTimeout(() => {
+        const lastMessage = messages[messages.length - 1];
+        if (!lastMessage) return;
 
-      const messageId = lastMessage.messageId;
-      if (!messageId || !userId) return;
+        const messageId = lastMessage.messageId;
+        if (!messageId || !userId) return;
 
-      const conversationId = chat.id;
-      markSeenMessages(String(conversationId), messageId, userId);
-      handleSeenMessage(String(chat.id));
+        const conversationId = chat.id;
+        markSeenMessages(String(conversationId), messageId, userId);
+        handleSeenMessage(String(chat.id));
       }, 2000);
-  };
+    };
 
     const handleScroll = () => {
       const container = containerRef.current;
@@ -95,8 +97,8 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
       console.log("Mensajes obtenidos:", data);
       addMessages(String(chat.id), data.values);
       setDataFetched(true);
-
     }
+
     const getChatName = () => {
       if (chat.isGroup) {
         return chat.group.name;
@@ -105,45 +107,46 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
     };
   
     const getPicture = (): React.ReactNode => {
-  if (chat.isGroup && chat.group.image) {
-    return (
-      <img
-        src={chat.group.image}
-        alt="Grupo"
-        className="w-8 h-8 rounded-full object-cover"
-      />
-    );
-  } else if (!chat.isGroup) {
-    const user = contacts[chat.contact.contact];
-    if (user?.picture) {
+      if (chat.isGroup && chat.group.image) {
+        return (
+          <img
+            src={chat.group.image}
+            alt="Grupo"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        );
+      } else if (!chat.isGroup) {
+        const user = contacts[chat.contact.contact];
+        if (user?.picture) {
+          return (
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          );
+        }
+      }
       return (
-        <img
-          src={user.picture}
-          alt={user.name}
-          className="w-8 h-8 rounded-full object-cover"
-        />
+        <div className="bg-blue-500 p-2 rounded-full">
+          <MessageSquareText className="text-white" size={24} />
+        </div>
       );
-    }
-  }
-   return (
-    <div className="bg-blue-500 p-2 rounded-full">
-      <MessageSquareText className="text-white" size={24} />
-    </div>
-  );
-};
+    };
+
     if (!isOpen) {
       return null;
-    } 
-    
-   return (
-      <main className="flex-1 flex flex-col w-3/5">
-      <ChatHeader 
-        chatName={getChatName()} 
-        avatar={getPicture()} 
-        contactId={chat.isGroup ? undefined : String(chat.contact.contact)}
-        isGroup={chat.isGroup}
-        chatId={chat.id}
-      /> 
+    }
+
+    return (
+      <main className="sm:w-[100vw] relative flex-1 flex flex-col min-w-[300px]">
+        <ChatHeader 
+          chatName={getChatName()} 
+          avatar={getPicture()} 
+          contactId={chat.isGroup ? undefined : String(chat.contact.contact)}
+          isGroup={chat.isGroup}
+          chatId={chat.id}
+        /> 
         <ChatBody messages={messages} userId={userId} chat={chat} />
         <ChatFooter
           chat={chat}
@@ -152,7 +155,8 @@ const ChatMessages = ({chat} : ChatMessagesProps) => {
           setNewMessage={setNewMessage}
           setMessage={setMessage}
         />
-      </main>);
-}
+      </main>
+    );
+};
 
 export default ChatMessages;

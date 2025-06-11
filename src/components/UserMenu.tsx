@@ -1,5 +1,5 @@
 import { MoreVertical  } from "lucide-react"
-
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,20 +10,29 @@ import { useUser } from "../services/UserContext";
 import AddContactModal from "./AddContactModal";
 import RequestsModal from "./RequestModal";
 import CreateChatGroupModal from "./CreateGroupModal";
+import Perfil from "./Profile";
 
-interface UserMenuProps {
-    onOpenProfile: () => void;
-}   
-
-const UserMenu = ({onOpenProfile}:UserMenuProps) => {
+const UserMenu = () => {
     const { logout } = useUser();
+    const [showProfile, setShowProfile] = useState(false);
+
+    const handleCloseProfile = () => {
+        setShowProfile(false);
+    };
+
     return (
+        <>
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger className="cursor-pointer">
                     <MoreVertical/>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem onClick={onOpenProfile}>Perfil</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => {
+                        e.preventDefault();
+                        setShowProfile(true);
+                    }}>
+                        Perfil
+                    </DropdownMenuItem>
                     <RequestsModal>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Solicitudes</DropdownMenuItem>
                     </RequestsModal>
@@ -38,7 +47,16 @@ const UserMenu = ({onOpenProfile}:UserMenuProps) => {
                     <DropdownMenuItem onClick={logout}>Cerrar Sesion</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-        )
+
+            {showProfile && (
+                <Perfil 
+                    onClose={handleCloseProfile}
+                >
+                    <div className="hidden" />
+                </Perfil>
+            )}
+        </>
+    )
 }
 
 export default UserMenu;

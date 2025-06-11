@@ -46,7 +46,9 @@ const subscribeToNewChats = (): void => {
       const data = JSON.parse(message.body);
       useChatStore.getState().updateChat(data);
       useChatStore.getState().addContact(data.contact);
-      useChatStore.getState().setSelectedChat(data.id);
+      if(Number(useChatStore.getState().selectedChat) < 0){
+        useChatStore.getState().setSelectedChat(data.id);
+      }
     });
   } else {
     console.error("No se pudo suscribir a nuevos chats, WebSocket no conectado");
